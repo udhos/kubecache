@@ -19,7 +19,7 @@ func fetch(c context.Context, client *http.Client, tracer trace.Tracer, method, 
 		return nil, 500, errReq
 	}
 
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	//req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, errDo := client.Do(req)
 	if errDo != nil {

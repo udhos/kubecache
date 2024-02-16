@@ -96,8 +96,8 @@ func startGroupcache(app *application) func() {
 			body, status, errFetch := fetch(ctx, httpClient, app.tracer, method, u)
 
 			traceID := span.SpanContext().TraceID().String()
-			log.Info().Str("traceID", traceID).Msgf("traceID=%s key='%s' status=%d error:%v",
-				traceID, key, status, errFetch)
+			log.Info().Str("traceID", traceID).Msgf("traceID=%s key='%s' url=%s status=%d error:%v",
+				traceID, key, u, status, errFetch)
 
 			if errFetch != nil {
 				return errFetch
