@@ -104,11 +104,11 @@ func startGroupcache(app *application) func() {
 				return fmt.Errorf("getter: bad URL: %v", errURL)
 			}
 
-			body, status, errFetch := fetch(ctx, httpClient, app.tracer,
+			body, respHeaders, status, errFetch := fetch(ctx, httpClient, app.tracer,
 				method, u, reqVal.body, reqVal.header)
 
 			traceID := span.SpanContext().TraceID().String()
-			log.Info().Str("traceID", traceID).Msgf("traceID=%s key='%s' url=%s status=%d error:%v",
+			log.Info().Str("traceID", traceID).Msgf("getter: traceID=%s key='%s' url=%s status=%d error:%v",
 				traceID, key, u, status, errFetch)
 
 			if errFetch != nil {
@@ -118,6 +118,7 @@ func startGroupcache(app *application) func() {
 			resp := response{
 				Body:   body,
 				Status: status,
+				Header: respHeaders,
 			}
 
 			data, errJ := json.Marshal(resp)

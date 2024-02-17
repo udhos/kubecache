@@ -237,6 +237,15 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	app.metrics.recordLatency(r.Method, strconv.Itoa(resp.Status), uri, elap)
 
+	//
+	// send response headers
+	//
+	for k, v := range resp.Header {
+		for _, vv := range v {
+			w.Header().Add(k, vv)
+		}
+	}
+
 	if errFetch != nil {
 		log.Error().Str("traceID", traceID).Msgf("traceID=%s key='%s' status=%d elapsed=%v error:%v",
 			traceID, key, resp.Status, elap, errFetch)
@@ -296,8 +305,9 @@ func (app *application) query(c context.Context, key string, body io.ReadCloser,
 }
 
 type response struct {
-	Body   []byte `json:"body"`
-	Status int    `json:"status"`
+	Body   []byte      `json:"body"`
+	Status int         `json:"status"`
+	Header http.Header `json:"header"`
 }
 
 type reqContextKey string

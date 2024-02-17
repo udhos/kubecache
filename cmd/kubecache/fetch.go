@@ -10,7 +10,7 @@ import (
 )
 
 func fetch(c context.Context, client *http.Client, tracer trace.Tracer,
-	method, uri string, reqBody []byte, h http.Header) ([]byte, int, error) {
+	method, uri string, reqBody []byte, h http.Header) ([]byte, http.Header, int, error) {
 
 	const me = "fetch"
 	ctx, span := tracer.Start(c, me)
@@ -19,7 +19,7 @@ func fetch(c context.Context, client *http.Client, tracer trace.Tracer,
 	req, errReq := http.NewRequestWithContext(ctx, method, uri,
 		bytes.NewBuffer(reqBody))
 	if errReq != nil {
-		return nil, 500, errReq
+		return nil, nil, 500, errReq
 	}
 
 	// copy headers
@@ -31,14 +31,14 @@ func fetch(c context.Context, client *http.Client, tracer trace.Tracer,
 
 	resp, errDo := client.Do(req)
 	if errDo != nil {
-		return nil, 500, errDo
+		return nil, nil, 500, errDo
 	}
 	defer resp.Body.Close()
 
 	reqBody, errBody := io.ReadAll(resp.Body)
 	if errBody != nil {
-		return nil, 500, errBody
+		return nil, nil, 500, errBody
 	}
 
-	return reqBody, 200, nil
+	return reqBody, resp.Header, resp.StatusCode, nil
 }
