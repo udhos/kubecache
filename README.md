@@ -5,3 +5,23 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/udhos/kubecache)](https://hub.docker.com/r/udhos/kubecache)
 
 # kubecache
+
+# Build
+
+```bash
+git clone https://github.com/udhos/kubecache
+cd kubecache
+./build.sh
+```
+
+# Docker image
+
+See: https://hub.docker.com/r/udhos/kubecache
+
+# Helm chart
+
+See: https://udhos.github.io/kubecache
+
+# Configuration
+
+See supported env vars in `configMapProperties` in [charts/kubecache/values.yaml](charts/kubecache/values.yaml).
