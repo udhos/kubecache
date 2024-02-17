@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -10,24 +9,18 @@ import (
 )
 
 func fetch(c context.Context, client *http.Client, tracer trace.Tracer,
-	method, uri string, reqBody []byte, h http.Header) ([]byte, http.Header, int, error) {
+	method, uri string) ([]byte, http.Header, int, error) {
 
 	const me = "fetch"
 	ctx, span := tracer.Start(c, me)
 	defer span.End()
 
-	req, errReq := http.NewRequestWithContext(ctx, method, uri,
-		bytes.NewBuffer(reqBody))
+	req, errReq := http.NewRequestWithContext(ctx, method, uri, nil)
 	if errReq != nil {
 		return nil, nil, 500, errReq
 	}
 
-	// copy headers
-	for k, v := range h {
-		for _, vv := range v {
-			req.Header.Add(k, vv)
-		}
-	}
+	//req.Header.Add("key", "value")
 
 	resp, errDo := client.Do(req)
 	if errDo != nil {

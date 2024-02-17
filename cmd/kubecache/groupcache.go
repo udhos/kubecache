@@ -87,25 +87,13 @@ func startGroupcache(app *application) func() {
 				return fmt.Errorf("getter: bad key: '%s'", key)
 			}
 
-			//
-			// retrieve request body/headers from context
-			//
-			v := ctx.Value(reqKey)
-			if v == nil {
-				return fmt.Errorf("getter: context key not found: %s", reqKey)
-			}
-			reqVal, ok := v.(*reqContextValue)
-			if !ok {
-				return fmt.Errorf("getter: bad context value for key: %s", reqKey)
-			}
-
 			u, errURL := url.JoinPath(app.cfg.backendURL, uri)
 			if errURL != nil {
 				return fmt.Errorf("getter: bad URL: %v", errURL)
 			}
 
 			body, respHeaders, status, errFetch := fetch(ctx, httpClient, app.tracer,
-				method, u, reqVal.body, reqVal.header)
+				method, u)
 
 			traceID := span.SpanContext().TraceID().String()
 			log.Info().Str("traceID", traceID).Msgf("getter: traceID=%s key='%s' url=%s status=%d error:%v",

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"os/signal"
 	"strconv"
 	"syscall"
@@ -231,7 +230,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	key := r.Method + " " + uri
 
-	resp, errFetch := app.query(ctx, key, r.Body, r.Header.Clone())
+	resp, errFetch := app.query(ctx, key)
 
 	elap := time.Since(begin)
 
@@ -262,7 +261,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) query(c context.Context, key string, body io.ReadCloser, h http.Header) (response, error) {
+func (app *application) query(c context.Context, key string) (response, error) {
 
 	const me = "app.query"
 	ctx, span := app.tracer.Start(c, me)
@@ -270,24 +269,8 @@ func (app *application) query(c context.Context, key string, body io.ReadCloser,
 
 	var resp response
 
-	reqBody, errBody := io.ReadAll(body)
-	if errBody != nil {
-		log.Error().Msgf("key='%s' body error:%v", key, errBody)
-		resp.Status = 500
-		return resp, errBody
-	}
-
-	//
-	// create context with request headers/body
-	//
-	reqVal := reqContextValue{
-		header: h,
-		body:   reqBody,
-	}
-	ctxReq := context.WithValue(ctx, reqKey, &reqVal)
-
 	var data []byte
-	errGet := app.cache.Get(ctxReq, key, groupcache.AllocatingByteSliceSink(&data))
+	errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data))
 
 	if errGet != nil {
 		log.Error().Msgf("key='%s' cache error:%v", key, errGet)
@@ -309,12 +292,3 @@ type response struct {
 	Status int         `json:"status"`
 	Header http.Header `json:"header"`
 }
-
-type reqContextKey string
-
-type reqContextValue struct {
-	header http.Header
-	body   []byte
-}
-
-var reqKey = reqContextKey("reqContextKey")
