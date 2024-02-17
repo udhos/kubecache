@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubecache.fullname" . }}
+data:
+  {{- if .Values.configMapProperties }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.configMapProperties "context" $ ) | nindent 2 }}
+  {{- end }}
+
