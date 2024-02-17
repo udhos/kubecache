@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os/signal"
 	"strconv"
 	"syscall"
@@ -230,7 +231,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	key := r.Method + " " + uri
 
-	resp, errFetch := app.query(ctx, key)
+	resp, errFetch := app.query(ctx, key, r.Body, r.Header.Clone())
 
 	elap := time.Since(begin)
 
@@ -252,26 +253,41 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) query(c context.Context, key string) (response, error) {
+func (app *application) query(c context.Context, key string, body io.ReadCloser, h http.Header) (response, error) {
 
 	const me = "app.query"
 	ctx, span := app.tracer.Start(c, me)
 	defer span.End()
 
-	var data []byte
-
-	errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data))
-
 	var resp response
 
+	reqBody, errBody := io.ReadAll(body)
+	if errBody != nil {
+		log.Error().Msgf("key='%s' body error:%v", key, errBody)
+		resp.Status = 500
+		return resp, errBody
+	}
+
+	//
+	// create context with request headers/body
+	//
+	reqVal := reqContextValue{
+		header: h,
+		body:   reqBody,
+	}
+	ctxReq := context.WithValue(ctx, reqKey, &reqVal)
+
+	var data []byte
+	errGet := app.cache.Get(ctxReq, key, groupcache.AllocatingByteSliceSink(&data))
+
 	if errGet != nil {
-		log.Error().Msgf("key=%s error:%v", key, errGet)
+		log.Error().Msgf("key='%s' cache error:%v", key, errGet)
 		resp.Status = 500
 		return resp, errGet
 	}
 
 	if errJ := json.Unmarshal(data, &resp); errJ != nil {
-		log.Error().Msgf("key=%s json error:%v", key, errJ)
+		log.Error().Msgf("key='%s' json error:%v", key, errJ)
 		resp.Status = 500
 		return resp, errJ
 	}
@@ -283,3 +299,12 @@ type response struct {
 	Body   []byte `json:"body"`
 	Status int    `json:"status"`
 }
+
+type reqContextKey string
+
+type reqContextValue struct {
+	header http.Header
+	body   []byte
+}
+
+var reqKey = reqContextKey("reqContextKey")

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"net/http"
@@ -8,18 +9,25 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func fetch(c context.Context, client *http.Client, tracer trace.Tracer, method, uri string) ([]byte, int, error) {
+func fetch(c context.Context, client *http.Client, tracer trace.Tracer,
+	method, uri string, reqBody []byte, h http.Header) ([]byte, int, error) {
 
 	const me = "fetch"
 	ctx, span := tracer.Start(c, me)
 	defer span.End()
 
-	req, errReq := http.NewRequestWithContext(ctx, method, uri, nil)
+	req, errReq := http.NewRequestWithContext(ctx, method, uri,
+		bytes.NewBuffer(reqBody))
 	if errReq != nil {
 		return nil, 500, errReq
 	}
 
-	//req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	// copy headers
+	for k, v := range h {
+		for _, vv := range v {
+			req.Header.Add(k, vv)
+		}
+	}
 
 	resp, errDo := client.Do(req)
 	if errDo != nil {
@@ -27,10 +35,10 @@ func fetch(c context.Context, client *http.Client, tracer trace.Tracer, method, 
 	}
 	defer resp.Body.Close()
 
-	body, errBody := io.ReadAll(resp.Body)
+	reqBody, errBody := io.ReadAll(resp.Body)
 	if errBody != nil {
 		return nil, 500, errBody
 	}
 
-	return body, 200, nil
+	return reqBody, 200, nil
 }
