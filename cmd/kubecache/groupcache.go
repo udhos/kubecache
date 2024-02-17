@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/modernprogram/groupcache/v2"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/groupcache_exporter"
 	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
@@ -147,7 +146,7 @@ func startGroupcache(app *application) func() {
 	}
 	namespace := ""
 	collector := groupcache_exporter.NewExporter(namespace, labels, g)
-	prometheus.MustRegister(collector)
+	app.registry.MustRegister(collector)
 
 	stop := func() {
 		kg.Close()
