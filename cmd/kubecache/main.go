@@ -43,7 +43,7 @@ func main() {
 			fmt.Println()
 			return
 		}
-		log.Print(v)
+		log.Info().Msg(v)
 	}
 
 	//
@@ -51,6 +51,10 @@ func main() {
 	//
 
 	app := newApplication(me)
+
+	if app.cfg.debugLog {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
 
 	//
 	// initialize tracing

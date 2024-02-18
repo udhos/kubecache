@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -102,11 +103,11 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	begin := time.Now()
 
-	traceID := span.SpanContext().TraceID().String()
-
 	uri := r.RequestURI
 
-	key := r.Method + " " + uri
+	method := r.Method
+
+	key := method + " " + uri
 
 	resp, errFetch := app.query(ctx, key)
 
@@ -115,7 +116,30 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	app.metrics.recordLatency(r.Method, strconv.Itoa(resp.Status), uri, elap)
 
 	//
-	// send response headers
+	// log query status
+	//
+	{
+		traceID := span.SpanContext().TraceID().String()
+		status := resp.Status
+		if errFetch == nil {
+			if isHTTPError(status) {
+				//
+				// http error
+				//
+				log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, uri, status, elap)
+			} else {
+				//
+				// http success
+				//
+				log.Debug().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, uri, status, elap)
+			}
+		} else {
+			log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Msgf("ServeHTTP: traceID=%s method=%s uri=%s response_status=%d elapsed=%v response_error:%v", traceID, method, uri, status, elap, errFetch)
+		}
+	}
+
+	//
+	// send response headers (1/3)
 	//
 	for k, v := range resp.Header {
 		for _, vv := range v {
@@ -123,20 +147,36 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//
+	// send response status (2/3)
+	//
+	if errFetch == nil {
+		w.WriteHeader(resp.Status)
+	} else {
+		w.WriteHeader(500)
+	}
+
+	//
+	// send response body (3/3)
+	//
 	if errFetch != nil {
-		log.Error().Str("traceID", traceID).Msgf("traceID=%s key='%s' status=%d elapsed=%v error:%v",
-			traceID, key, resp.Status, elap, errFetch)
-		http.Error(w, errFetch.Error(), resp.Status)
-		return
+		//
+		// error
+		//
+		if len(resp.Body) > 0 {
+			//
+			// prefer received body
+			//
+			w.Write(resp.Body)
+		} else {
+			fmt.Fprint(w, errFetch.Error())
+		}
 	}
+	w.Write(resp.Body)
+}
 
-	log.Info().Str("traceID", traceID).Msgf("traceID=%s key='%s' status=%d elapsed=%v",
-		traceID, key, resp.Status, elap)
-
-	if _, err := w.Write(resp.Body); err != nil {
-		log.Error().Str("traceID", traceID).Msgf("traceID=%s key='%s' status=%d elapsed=%v write error:%v",
-			traceID, key, resp.Status, elap, err)
-	}
+func isHTTPError(status int) bool {
+	return status < 200 || status > 299
 }
 
 func (app *application) query(c context.Context, key string) (response, error) {

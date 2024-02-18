@@ -27,9 +27,9 @@ func startGroupcache(app *application) func() {
 
 	myURL, errURL := kubegroup.FindMyURL(app.cfg.groupcachePort)
 	if errURL != nil {
-		log.Fatal().Msgf("my URL: %v", errURL)
+		log.Fatal().Msgf("groupcache my URL: %v", errURL)
 	}
-	log.Printf("groupcache my URL: %s", myURL)
+	log.Info().Msgf("groupcache my URL: %v", errURL)
 
 	pool := groupcache.NewHTTPPoolOptsWithWorkspace(workspace, myURL, &groupcache.HTTPPoolOptions{})
 
@@ -92,12 +92,32 @@ func startGroupcache(app *application) func() {
 				return fmt.Errorf("getter: bad URL: %v", errURL)
 			}
 
+			begin := time.Now()
+
 			body, respHeaders, status, errFetch := fetch(ctx, httpClient, app.tracer,
 				method, u)
 
+			elap := time.Since(begin)
+
+			//
+			// log fetch status
+			//
 			traceID := span.SpanContext().TraceID().String()
-			log.Info().Str("traceID", traceID).Msgf("getter: traceID=%s key='%s' url=%s status=%d error:%v",
-				traceID, key, u, status, errFetch)
+			if errFetch == nil {
+				if isHTTPError(status) {
+					//
+					// http error
+					//
+					log.Error().Str("traceID", traceID).Str("method", method).Str("url", u).Int("response_status", status).Dur("elapsed", elap).Msgf("getter: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, u, status, elap)
+				} else {
+					//
+					// http success
+					//
+					log.Debug().Str("traceID", traceID).Str("method", method).Str("url", u).Int("response_status", status).Dur("elapsed", elap).Msgf("getter: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, u, status, elap)
+				}
+			} else {
+				log.Error().Str("traceID", traceID).Str("method", method).Str("url", u).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Msgf("getter: traceID=%s method=%s url=%s response_status=%d elapsed=%v response_error:%v", traceID, method, u, status, elap, errFetch)
+			}
 
 			if errFetch != nil {
 				return errFetch

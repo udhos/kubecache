@@ -7,6 +7,7 @@ import (
 )
 
 type config struct {
+	debugLog                  bool
 	listenAddr                string
 	backendURL                string
 	backendTimeout            time.Duration
@@ -29,6 +30,7 @@ func newConfig(roleSessionName string) config {
 	env := envconfig.NewSimple(roleSessionName)
 
 	return config{
+		debugLog:         env.Bool("DEBUG_LOG", true),
 		listenAddr:       env.String("LISTEN_ADDR", ":9000"),
 		backendURL:       env.String("BACKEND_URL", "http://config-server:9000"),
 		cacheTTL:         env.Duration("CACHE_TTL", 300*time.Second),

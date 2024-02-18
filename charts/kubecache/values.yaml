@@ -108,6 +108,7 @@ podHealthCheck:
 #
 configMapProperties:
   #SECRET_ROLE_ARN: ""
+  #DEBUG_LOG: "true"
   #LISTEN_ADDR: ":9000"
   #BACKEND_URL: "http://config-server:9000"
   #BACKEND_TIMEOUT: 300s
