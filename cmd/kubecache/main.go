@@ -39,7 +39,7 @@ type application struct {
 
 func main() {
 	//
-	//
+	// initialize zerolog
 	//
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
