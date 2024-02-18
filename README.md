@@ -6,6 +6,8 @@
 
 # kubecache
 
+[kubecache](https://github.com/udhos/kubecache) forwards HTTP GET requests to another service, cacheing responses in [groupcache](https://github.com/modernprogram/groupcache) for 5 minutes (by default).
+
 # Build
 
 ```bash
