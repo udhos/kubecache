@@ -62,7 +62,7 @@ func TestApp(t *testing.T) {
 			t.Errorf(err.Error())
 		}
 		if elap >= fastResponse {
-			t.Errorf("response too slow for server %v > %v", elap, fastResponse)
+			t.Errorf("response too slow for cache %v > %v", elap, fastResponse)
 		}
 	}
 	if serverHits != 1 {
@@ -76,7 +76,7 @@ func TestApp(t *testing.T) {
 			t.Errorf(err.Error())
 		}
 		if elap >= fastResponse {
-			t.Errorf("response too slow for server %v > %v", elap, fastResponse)
+			t.Errorf("response too slow for cache %v > %v", elap, fastResponse)
 		}
 	}
 	if serverHits != 1 {
