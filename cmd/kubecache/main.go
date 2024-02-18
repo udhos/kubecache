@@ -16,26 +16,11 @@ import (
 	"time"
 
 	"github.com/modernprogram/groupcache/v2"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/otelconfig/oteltrace"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/trace"
 )
-
-type application struct {
-	cfg              config
-	tracer           trace.Tracer
-	registry         *prometheus.Registry
-	metrics          *prometheusMetrics
-	serverMain       *http.Server
-	serverHealth     *http.Server
-	serverMetrics    *http.Server
-	serverGroupCache *http.Server
-	cache            *groupcache.Group
-}
 
 func main() {
 	//
@@ -66,15 +51,11 @@ func main() {
 		log.Print(v)
 	}
 
-	app := &application{
-		registry: prometheus.NewRegistry(),
-	}
-
 	//
-	// config
+	// application
 	//
 
-	app.cfg = newConfig(me)
+	app := newApplication(me)
 
 	//
 	// initialize tracing
@@ -96,11 +77,6 @@ func main() {
 
 		app.tracer = tracer
 	}
-
-	//
-	// init application
-	//
-	initApplication(app)
 
 	//
 	// start application server
@@ -184,36 +160,6 @@ func httpShutdown(s *http.Server, label string, timeout time.Duration) {
 	if err := s.Shutdown(ctx); err != nil {
 		log.Error().Msgf("http shutdown error: %s: %v", label, err)
 	}
-}
-
-func initApplication(app *application) {
-
-	//
-	// add basic/default instrumentation
-	//
-	app.registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
-	app.registry.MustRegister(prometheus.NewGoCollector())
-
-	app.metrics = newMetrics(app.registry, app.cfg.metricsNamespace,
-		app.cfg.metricsBucketsLatencyHTTP)
-
-	//
-	// start group cache
-	//
-	startGroupcache(app)
-
-	//
-	// register application route
-	//
-
-	mux := http.NewServeMux()
-	app.serverMain = &http.Server{Addr: app.cfg.listenAddr, Handler: mux}
-
-	const route = "/"
-
-	log.Info().Msgf("registering route: %s %s", app.cfg.listenAddr, route)
-
-	mux.Handle(route, otelhttp.NewHandler(app, "app.ServerHTTP"))
 }
 
 func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
