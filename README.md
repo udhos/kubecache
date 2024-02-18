@@ -27,3 +27,7 @@ See: https://udhos.github.io/kubecache
 # Configuration
 
 See supported env vars in `configMapProperties` in [charts/kubecache/values.yaml](charts/kubecache/values.yaml).
+
+# References
+
+* (Portuguese) Blog post: https://udhos.github.io/blog/2024/02/18/groupcache.html
