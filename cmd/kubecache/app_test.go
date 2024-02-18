@@ -61,7 +61,7 @@ func TestApp(t *testing.T) {
 		if err != nil {
 			t.Errorf(err.Error())
 		}
-		if elap >= slowServerDelay {
+		if elap >= fastResponse {
 			t.Errorf("response too slow for server %v > %v", elap, fastResponse)
 		}
 	}
@@ -75,7 +75,7 @@ func TestApp(t *testing.T) {
 		if err != nil {
 			t.Errorf(err.Error())
 		}
-		if elap >= slowServerDelay {
+		if elap >= fastResponse {
 			t.Errorf("response too slow for server %v > %v", elap, fastResponse)
 		}
 	}
