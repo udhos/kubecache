@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/boilerplate/boilerplate"
 	"github.com/udhos/otelconfig/oteltrace"
+	_ "go.uber.org/automaxprocs"
 )
 
 func main() {
