@@ -35,7 +35,7 @@ func TestApp(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond) // give time for the application to start
 
-	u := "http://localhost:9000/test"
+	u := "http://localhost:8080/test"
 
 	if serverHits != 0 {
 		t.Errorf("non-zero server hits: %d", serverHits)

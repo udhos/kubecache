@@ -99,12 +99,14 @@ func startGroupcache(app *application) func() {
 
 			elap := time.Since(begin)
 
+			isErrorStatus := isHTTPError(status)
+
 			//
 			// log fetch status
 			//
 			traceID := span.SpanContext().TraceID().String()
 			if errFetch == nil {
-				if isHTTPError(status) {
+				if isErrorStatus {
 					//
 					// http error
 					//
@@ -134,7 +136,13 @@ func startGroupcache(app *application) func() {
 				return errJ
 			}
 
-			expire := time.Now().Add(app.cfg.cacheTTL)
+			var ttl time.Duration
+			if isErrorStatus {
+				ttl = app.cfg.cacheErrorTTL
+			} else {
+				ttl = app.cfg.cacheTTL
+			}
+			expire := time.Now().Add(ttl)
 
 			return dest.SetBytes(data, expire)
 		},

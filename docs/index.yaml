@@ -2,6 +2,18 @@ apiVersion: v1
 entries:
   kubecache:
   - apiVersion: v2
+    appVersion: 0.0.3
+    created: "2024-02-19T21:39:22.8439581-03:00"
+    description: Helm chart to install kubecache on kubernetes
+    digest: 0c72506d127a11190971893ade043ba3d3fb380c0030fb0fee7e8dec6db32ecc
+    name: kubecache
+    sources:
+    - https://github.com/udhos/kubecache
+    type: application
+    urls:
+    - https://udhos.github.io/kubecache/kubecache-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v2
     appVersion: 0.0.2
     created: "2024-02-19T08:12:22.991107964-03:00"
     description: Helm chart to install kubecache on kubernetes
@@ -37,4 +49,4 @@ entries:
     urls:
     - https://udhos.github.io/kubecache/kubecache-0.0.0.tgz
     version: 0.0.0
-generated: "2024-02-19T08:12:22.990652789-03:00"
+generated: "2024-02-19T21:39:22.84275326-03:00"
