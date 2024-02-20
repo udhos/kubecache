@@ -75,6 +75,11 @@ func startGroupcache(app *application) func() {
 		Timeout:   app.cfg.backendTimeout,
 	}
 
+	backendURL, errURL := url.Parse(app.cfg.backendURL)
+	if errURL != nil {
+		log.Fatal().Msgf("backend URL: %v", errURL)
+	}
+
 	getter := groupcache.GetterFunc(
 		func(c context.Context, key string, dest groupcache.Sink) error {
 
@@ -87,10 +92,15 @@ func startGroupcache(app *application) func() {
 				return fmt.Errorf("getter: bad key: '%s'", key)
 			}
 
-			u, errURL := url.JoinPath(app.cfg.backendURL, uri)
-			if errURL != nil {
-				return fmt.Errorf("getter: bad URL: %v", errURL)
+			reqURL, errParseURL := url.Parse(uri)
+			if errParseURL != nil {
+				return fmt.Errorf("getter: parse URL: '%s': %v", uri, errParseURL)
 			}
+
+			reqURL.Scheme = backendURL.Scheme
+			reqURL.Host = backendURL.Host
+
+			u := reqURL.String()
 
 			begin := time.Now()
 

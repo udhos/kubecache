@@ -103,7 +103,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	begin := time.Now()
 
-	uri := r.RequestURI
+	uri := r.URL.String()
 
 	method := r.Method
 
