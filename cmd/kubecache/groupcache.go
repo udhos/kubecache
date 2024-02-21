@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/modernprogram/groupcache/v2"
@@ -14,7 +12,6 @@ import (
 	"github.com/udhos/groupcache_exporter"
 	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
 	"github.com/udhos/kubegroup/kubegroup"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 func startGroupcache(app *application) func() {
@@ -50,15 +47,15 @@ func startGroupcache(app *application) func() {
 	//
 
 	options := kubegroup.Options{
-		Pool:           pool,
-		GroupCachePort: app.cfg.groupcachePort,
-		//PodLabelKey:    "app",         // default is "app"
-		//PodLabelValue:  "my-app-name", // default is current PODs label value for label key
+		Pool:              pool,
+		GroupCachePort:    app.cfg.groupcachePort,
 		MetricsRegisterer: app.registry,
 		MetricsGatherer:   app.registry,
 		MetricsNamespace:  app.cfg.kubegroupMetricsNamespace,
 		Debug:             app.cfg.kubegroupDebug,
 		ListerInterval:    app.cfg.kubegroupListerInterval,
+		//PodLabelKey:    "app",         // default is "app"
+		//PodLabelValue:  "my-app-name", // default is current PODs label value for label key
 	}
 
 	kg, errKg := kubegroup.UpdatePeers(options)
@@ -70,16 +67,6 @@ func startGroupcache(app *application) func() {
 	// create cache
 	//
 
-	httpClient := &http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
-		Timeout:   app.cfg.backendTimeout,
-	}
-
-	backendURL, errURL := url.Parse(app.cfg.backendURL)
-	if errURL != nil {
-		log.Fatal().Msgf("backend URL: %v", errURL)
-	}
-
 	getter := groupcache.GetterFunc(
 		func(c context.Context, key string, dest groupcache.Sink) error {
 
@@ -87,63 +74,14 @@ func startGroupcache(app *application) func() {
 			ctx, span := app.tracer.Start(c, me)
 			defer span.End()
 
-			method, uri, found := strings.Cut(key, " ")
-			if !found {
-				return fmt.Errorf("getter: bad key: '%s'", key)
-			}
-
-			reqURL, errParseURL := url.Parse(uri)
-			if errParseURL != nil {
-				return fmt.Errorf("getter: parse URL: '%s': %v", uri, errParseURL)
-			}
-
-			reqURL.Scheme = backendURL.Scheme
-			reqURL.Host = backendURL.Host
-
-			u := reqURL.String()
-
-			begin := time.Now()
-
-			body, respHeaders, status, errFetch := fetch(ctx, httpClient, app.tracer,
-				method, u)
-
-			elap := time.Since(begin)
-
-			isErrorStatus := isHTTPError(status)
-
-			//
-			// log fetch status
-			//
-			traceID := span.SpanContext().TraceID().String()
-			if errFetch == nil {
-				if isErrorStatus {
-					//
-					// http error
-					//
-					log.Error().Str("traceID", traceID).Str("method", method).Str("url", u).Int("response_status", status).Dur("elapsed", elap).Msgf("getter: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, u, status, elap)
-				} else {
-					//
-					// http success
-					//
-					log.Debug().Str("traceID", traceID).Str("method", method).Str("url", u).Int("response_status", status).Dur("elapsed", elap).Msgf("getter: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, u, status, elap)
-				}
-			} else {
-				log.Error().Str("traceID", traceID).Str("method", method).Str("url", u).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Msgf("getter: traceID=%s method=%s url=%s response_status=%d elapsed=%v response_error:%v", traceID, method, u, status, elap, errFetch)
-			}
-
+			resp, isErrorStatus, errFetch := doFetch(ctx, app.tracer, app.httpClient, app.backendURL, key)
 			if errFetch != nil {
 				return errFetch
 			}
 
-			resp := response{
-				Body:   body,
-				Status: status,
-				Header: respHeaders,
-			}
-
 			data, errJ := json.Marshal(resp)
-			if errFetch != nil {
-				return errJ
+			if errJ != nil {
+				return fmt.Errorf("%s: marshal json response: %v", me, errJ)
 			}
 
 			var ttl time.Duration
@@ -168,9 +106,7 @@ func startGroupcache(app *application) func() {
 	//
 
 	g := modernprogram.New(app.cache)
-	labels := map[string]string{
-		//"app": appName,
-	}
+	labels := map[string]string{}
 	namespace := ""
 	collector := groupcache_exporter.NewExporter(namespace, labels, g)
 	app.registry.MustRegister(collector)

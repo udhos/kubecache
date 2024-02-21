@@ -112,6 +112,7 @@ configMapProperties:
   #DEBUG_LOG: "true"
   #LISTEN_ADDR: ":8080"
   #BACKEND_URL: "http://config-server:9000"
+  #RESTRICT_PREFIX: '["/develop", "/homolog", "/prod"]'
   #BACKEND_TIMEOUT: 300s
   #CACHE_TTL: 300s
   #CACHE_ERROR_TTL: 60s

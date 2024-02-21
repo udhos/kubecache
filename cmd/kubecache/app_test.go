@@ -11,6 +11,127 @@ import (
 	"time"
 )
 
+type bodyTestCase struct {
+	name           string
+	uri            string
+	resp           sResponse
+	expectedStatus int
+	expectedBody   string
+}
+
+type sResponse struct {
+	errMsg string
+	status int
+	body   string
+}
+
+var bodyTestTable = []bodyTestCase{
+	{
+		name: "1",
+		uri:  "http://localhost:8080/test",
+		resp: sResponse{
+			errMsg: "",
+			status: 200,
+			body:   "ok",
+		},
+		expectedStatus: 200,
+		expectedBody:   "ok",
+	},
+	{
+		name: "2",
+		uri:  "http://localhost:8080/test",
+		resp: sResponse{
+			errMsg: "",
+			status: 404,
+			body:   "not-found",
+		},
+		expectedStatus: 404,
+		expectedBody:   "not-found",
+	},
+	{
+		name: "3",
+		uri:  "http://localhost:8080/test",
+		resp: sResponse{
+			errMsg: "crash",
+			status: 200,
+			body:   "ok",
+		},
+		expectedStatus: 500,
+		expectedBody:   "crash",
+	},
+}
+
+func respond(t *testing.T, w http.ResponseWriter, status int, body string) {
+	t.Logf("respond: status:%d body:%s", status, body)
+	w.WriteHeader(status)
+	fmt.Fprint(w, body)
+}
+
+func TestBody(t *testing.T) {
+
+	for _, data := range bodyTestTable {
+		testBody(t, data)
+	}
+}
+
+func testBody(t *testing.T, data bodyTestCase) {
+	sResp := &sResponse{}
+
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// 1/3: header
+		// 2/3: status code
+		// 3/3: body
+
+		if sResp.errMsg != "" {
+			respond(t, w, 500, sResp.errMsg)
+			return
+		}
+
+		respond(t, w, sResp.status, sResp.body)
+	}))
+	defer s.Close()
+
+	os.Setenv("BACKEND_URL", s.URL)
+	os.Setenv("RESTRICT_PREFIX", "[]")
+
+	app := newApplication("test")
+	defer app.stop()
+	go app.run()
+
+	time.Sleep(100 * time.Millisecond) // give time for the application to start
+
+	u, errParse := url.Parse(data.uri)
+	if errParse != nil {
+		t.Errorf("%s: parse: %v", data.name, errParse)
+	}
+
+	*sResp = data.resp
+
+	t.Logf("%s: client: %v", data.name, data.resp)
+
+	resp, errGet := http.Get(u.String())
+	if errGet != nil {
+		t.Errorf("%s: get: %v", data.name, errGet)
+	}
+	defer resp.Body.Close()
+
+	if data.expectedStatus != resp.StatusCode {
+		t.Errorf("%s: status: expected=%d got=%d", data.name, data.expectedStatus, resp.StatusCode)
+	}
+
+	body, errBody := io.ReadAll(resp.Body)
+	if errBody != nil {
+		t.Errorf("%s: body: %v", data.name, errBody)
+	}
+
+	bodyStr := string(body)
+
+	if data.expectedBody != bodyStr {
+		t.Errorf("%s: body: expected=%s got=%s", data.name, data.expectedBody, bodyStr)
+	}
+}
+
 func TestApp(t *testing.T) {
 	base := "http://localhost:8080"
 
@@ -29,6 +150,7 @@ func query(name, expected, u string) (time.Duration, error) {
 	if errGet != nil {
 		return elap, errGet
 	}
+	defer resp.Body.Close()
 
 	elap = time.Since(begin)
 
@@ -76,6 +198,7 @@ func test2(t *testing.T, name, full string) {
 	defer s.Close()
 
 	os.Setenv("BACKEND_URL", s.URL)
+	os.Setenv("RESTRICT_PREFIX", "[]")
 
 	app := newApplication("test")
 	defer app.stop()

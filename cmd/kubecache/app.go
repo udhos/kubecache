@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/modernprogram/groupcache/v2"
@@ -26,6 +28,9 @@ type application struct {
 	serverMetrics    *http.Server
 	serverGroupCache *http.Server
 	cache            *groupcache.Group
+	restrictPrefix   []string
+	backendURL       *url.URL
+	httpClient       *http.Client
 }
 
 func (app *application) run() {
@@ -55,6 +60,24 @@ func newApplication(me string) *application {
 }
 
 func initApplication(app *application) {
+
+	{
+		u, errURL := url.Parse(app.cfg.backendURL)
+		if errURL != nil {
+			log.Fatal().Msgf("backend URL: %v", errURL)
+		}
+		app.backendURL = u
+	}
+
+	errList := json.Unmarshal([]byte(app.cfg.restrictPrefix), &app.restrictPrefix)
+	if errList != nil {
+		log.Fatal().Msgf("restrict to prefix: '%s': %v", app.cfg.restrictPrefix, errList)
+	}
+
+	app.httpClient = &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Timeout:   app.cfg.backendTimeout,
+	}
 
 	//
 	// add basic/default instrumentation
@@ -109,7 +132,28 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	key := method + " " + uri
 
-	resp, errFetch := app.query(ctx, key)
+	//
+	// Restricted prefix list?
+	//
+	var useCache bool
+	if len(app.restrictPrefix) == 0 {
+		//
+		// empty list, cache everything
+		//
+		useCache = true
+	} else {
+		//
+		// check the path is in the restricted list
+		//
+		for _, p := range app.restrictPrefix {
+			if strings.HasPrefix(r.URL.RequestURI(), p) {
+				useCache = true
+				break
+			}
+		}
+	}
+
+	resp, errFetch := app.query(ctx, key, useCache)
 
 	elap := time.Since(begin)
 
@@ -126,7 +170,8 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				//
 				// http error
 				//
-				log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, uri, status, elap)
+				bodyStr := string(resp.Body)
+				log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Str("response_body", bodyStr).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v response_body:%s", traceID, method, uri, status, elap, bodyStr)
 			} else {
 				//
 				// http success
@@ -159,7 +204,9 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//
 	// send response body (3/3)
 	//
-	if errFetch != nil {
+	if errFetch == nil {
+		w.Write(resp.Body)
+	} else {
 		//
 		// error
 		//
@@ -172,37 +219,63 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, errFetch.Error())
 		}
 	}
-	w.Write(resp.Body)
 }
 
 func isHTTPError(status int) bool {
 	return status < 200 || status > 299
 }
 
-func (app *application) query(c context.Context, key string) (response, error) {
+func (app *application) query(c context.Context, key string, useCache bool) (response, error) {
 
 	const me = "app.query"
 	ctx, span := app.tracer.Start(c, me)
 	defer span.End()
 
-	var resp response
+	if useCache {
+		var resp response
+		var data []byte
 
-	var data []byte
-	errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data))
+		if errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data)); errGet != nil {
+			log.Error().Msgf("key='%s' cache error:%v", key, errGet)
+			resp.Status = 500
+			return resp, errGet
+		}
 
-	if errGet != nil {
-		log.Error().Msgf("key='%s' cache error:%v", key, errGet)
-		resp.Status = 500
-		return resp, errGet
+		if errJ := json.Unmarshal(data, &resp); errJ != nil {
+			log.Error().Msgf("key='%s' json error:%v", key, errJ)
+			resp.Status = 500
+			return resp, errJ
+		}
+
+		return resp, nil
+
 	}
 
-	if errJ := json.Unmarshal(data, &resp); errJ != nil {
-		log.Error().Msgf("key='%s' json error:%v", key, errJ)
-		resp.Status = 500
-		return resp, errJ
+	resp, _, errFetch := doFetch(ctx, app.tracer, app.httpClient, app.backendURL, key)
+	if errFetch != nil {
+		return resp, errFetch
 	}
 
 	return resp, nil
+}
+
+func parseKey(caller string, backendURL *url.URL, key string) (string, string, error) {
+	method, uri, found := strings.Cut(key, " ")
+	if !found {
+		return "", "", fmt.Errorf("%s: parseKey: bad key: '%s'", caller, key)
+	}
+
+	reqURL, errParseURL := url.Parse(uri)
+	if errParseURL != nil {
+		return "", "", fmt.Errorf("%s: parse URL: '%s': %v", caller, uri, errParseURL)
+	}
+
+	reqURL.Scheme = backendURL.Scheme
+	reqURL.Host = backendURL.Host
+
+	u := reqURL.String()
+
+	return method, u, nil
 }
 
 type response struct {
