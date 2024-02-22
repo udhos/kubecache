@@ -112,7 +112,13 @@ configMapProperties:
   #DEBUG_LOG: "true"
   #LISTEN_ADDR: ":8080"
   #BACKEND_URL: "http://config-server:9000"
-  #RESTRICT_PREFIX: '["/develop", "/homolog", "/prod"]'
+  #
+  # only requests matching both RESTRICT_ROUTE_REGEXP and RESTRICT_METHOD are cached.
+  # *empty* list means match *anything*.
+  #
+  #RESTRICT_ROUTE_REGEXP: '["^/develop", "^/homolog", "^/prod", "/develop/?$", "/homolog/?$", "/prod/?$"]'
+  #RESTRICT_METHOD: '["GET", "HEAD"]`'
+  #
   #BACKEND_TIMEOUT: 300s
   #CACHE_TTL: 300s
   #CACHE_ERROR_TTL: 60s

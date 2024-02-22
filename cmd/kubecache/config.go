@@ -10,7 +10,8 @@ type config struct {
 	debugLog                  bool
 	listenAddr                string
 	backendURL                string
-	restrictPrefix            string
+	restrictRouteRegexp       string
+	restrictMethod            string
 	backendTimeout            time.Duration
 	cacheTTL                  time.Duration
 	cacheErrorTTL             time.Duration
@@ -32,10 +33,16 @@ func newConfig(roleSessionName string) config {
 	env := envconfig.NewSimple(roleSessionName)
 
 	return config{
-		debugLog:         env.Bool("DEBUG_LOG", true),
-		listenAddr:       env.String("LISTEN_ADDR", ":8080"),
-		backendURL:       env.String("BACKEND_URL", "http://config-server:9000"),
-		restrictPrefix:   env.String("RESTRICT_PREFIX", `["/develop", "/homolog", "/prod"]`),
+		debugLog:   env.Bool("DEBUG_LOG", true),
+		listenAddr: env.String("LISTEN_ADDR", ":8080"),
+		backendURL: env.String("BACKEND_URL", "http://config-server:9000"),
+		//
+		// only requests matching both RESTRICT_ROUTE_REGEXP and RESTRICT_METHOD are cached.
+		// *empty* list means match *anything*.
+		//
+		restrictRouteRegexp: env.String("RESTRICT_ROUTE_REGEXP", `["^/develop", "^/homolog", "^/prod", "/develop/?$", "/homolog/?$", "/prod/?$"]`),
+		restrictMethod:      env.String("RESTRICT_METHOD", `["GET", "HEAD"]`),
+		//
 		cacheTTL:         env.Duration("CACHE_TTL", 300*time.Second),
 		cacheErrorTTL:    env.Duration("CACHE_ERROR_TTL", 60*time.Second),
 		backendTimeout:   env.Duration("BACKEND_TIMEOUT", 300*time.Second),

@@ -93,7 +93,7 @@ func testBody(t *testing.T, data bodyTestCase) {
 	defer s.Close()
 
 	os.Setenv("BACKEND_URL", s.URL)
-	os.Setenv("RESTRICT_PREFIX", "[]")
+	envCacheAnything()
 
 	app := newApplication("test")
 	defer app.stop()
@@ -168,6 +168,11 @@ func query(name, expected, u string) (time.Duration, error) {
 	return elap, nil
 }
 
+func envCacheAnything() {
+	os.Setenv("RESTRICT_ROUTE_REGEXP", "[]")
+	os.Setenv("RESTRICT_METHOD", "[]")
+}
+
 func test2(t *testing.T, name, full string) {
 
 	expected := "hello"
@@ -198,7 +203,7 @@ func test2(t *testing.T, name, full string) {
 	defer s.Close()
 
 	os.Setenv("BACKEND_URL", s.URL)
-	os.Setenv("RESTRICT_PREFIX", "[]")
+	envCacheAnything()
 
 	app := newApplication("test")
 	defer app.stop()

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -15,22 +16,24 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/otelconfig/oteltrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type application struct {
-	cfg              config
-	tracer           trace.Tracer
-	registry         *prometheus.Registry
-	metrics          *prometheusMetrics
-	serverMain       *http.Server
-	serverHealth     *http.Server
-	serverMetrics    *http.Server
-	serverGroupCache *http.Server
-	cache            *groupcache.Group
-	restrictPrefix   []string
-	backendURL       *url.URL
-	httpClient       *http.Client
+	cfg                 config
+	tracer              trace.Tracer
+	registry            *prometheus.Registry
+	metrics             *prometheusMetrics
+	serverMain          *http.Server
+	serverHealth        *http.Server
+	serverMetrics       *http.Server
+	serverGroupCache    *http.Server
+	cache               *groupcache.Group
+	restrictRouteRegexp []*regexp.Regexp
+	restrictMethod      []string
+	backendURL          *url.URL
+	httpClient          *http.Client
 }
 
 func (app *application) run() {
@@ -69,9 +72,29 @@ func initApplication(app *application) {
 		app.backendURL = u
 	}
 
-	errList := json.Unmarshal([]byte(app.cfg.restrictPrefix), &app.restrictPrefix)
-	if errList != nil {
-		log.Fatal().Msgf("restrict to prefix: '%s': %v", app.cfg.restrictPrefix, errList)
+	{
+		var regexpList []string
+		errRegexpList := json.Unmarshal([]byte(app.cfg.restrictRouteRegexp), &regexpList)
+		if errRegexpList != nil {
+			log.Fatal().Msgf("restrict route regexp: '%s': %v", app.cfg.restrictRouteRegexp, errRegexpList)
+		}
+		for _, expr := range regexpList {
+			re, errRe := regexp.Compile(expr)
+			if errRe != nil {
+				log.Fatal().Msgf("restrict route regexp: compile: expr='%s': %v", expr, errRe)
+			}
+			app.restrictRouteRegexp = append(app.restrictRouteRegexp, re)
+		}
+	}
+
+	{
+		errList := json.Unmarshal([]byte(app.cfg.restrictMethod), &app.restrictMethod)
+		if errList != nil {
+			log.Fatal().Msgf("restrict method: '%s': %v", app.cfg.restrictMethod, errList)
+		}
+		for i, m := range app.restrictMethod {
+			app.restrictMethod[i] = strings.ToUpper(m)
+		}
 	}
 
 	app.httpClient = &http.Client{
@@ -118,6 +141,63 @@ func httpShutdown(s *http.Server, label string, timeout time.Duration) {
 	}
 }
 
+func mustCacheMethod(method string, restrictMethods []string) bool {
+	//
+	// Restricted list?
+	//
+	if len(restrictMethods) == 0 {
+		//
+		// empty list, cache everything
+		//
+		return true
+	}
+
+	//
+	// check the method is in the list
+	//
+	for _, m := range restrictMethods {
+		if method == m {
+			return true
+		}
+	}
+
+	return false
+}
+
+func mustCacheRoute(uri string, restrictRoutes []*regexp.Regexp) bool {
+	//
+	// Restricted list?
+	//
+	if len(restrictRoutes) == 0 {
+		//
+		// empty list, cache everything
+		//
+		return true
+	}
+
+	//
+	// check the route is in the list
+	//
+	for _, re := range restrictRoutes {
+		if re.MatchString(uri) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func mustCache(method, uri string, restrictMethods []string, restrictRoutes []*regexp.Regexp) bool {
+	return mustCacheMethod(method, restrictMethods) && mustCacheRoute(uri, restrictRoutes)
+}
+
+var traceMethod = attribute.Key("method")
+var traceUri = attribute.Key("uri")
+var traceResponseStatus = attribute.Key("response_status")
+var traceResponseError = attribute.Key("response_error")
+var traceElapsed = attribute.Key("elapsed")
+var traceUseCache = attribute.Key("use_cache")
+
 func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	const me = "app.ServeHTTP"
@@ -132,32 +212,17 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	key := method + " " + uri
 
-	//
-	// Restricted prefix list?
-	//
-	var useCache bool
-	if len(app.restrictPrefix) == 0 {
-		//
-		// empty list, cache everything
-		//
-		useCache = true
-	} else {
-		//
-		// check the path is in the restricted list
-		//
-		for _, p := range app.restrictPrefix {
-			if strings.HasPrefix(r.URL.RequestURI(), p) {
-				useCache = true
-				break
-			}
-		}
-	}
+	useCache := mustCache(method, r.URL.RequestURI(), app.restrictMethod, app.restrictRouteRegexp)
 
 	resp, errFetch := app.query(ctx, key, useCache)
 
+	isFetchError := errFetch != nil
+
 	elap := time.Since(begin)
 
-	app.metrics.recordLatency(r.Method, strconv.Itoa(resp.Status), uri, elap)
+	outcome := outcomeFrom(resp.Status, isFetchError)
+
+	app.metrics.recordLatency(r.Method, strconv.Itoa(resp.Status), uri, outcome, elap)
 
 	//
 	// log query status
@@ -165,22 +230,33 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	{
 		traceID := span.SpanContext().TraceID().String()
 		status := resp.Status
-		if errFetch == nil {
+		if !isFetchError {
 			if isHTTPError(status) {
 				//
 				// http error
 				//
 				bodyStr := string(resp.Body)
-				log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Str("response_body", bodyStr).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v response_body:%s", traceID, method, uri, status, elap, bodyStr)
+				log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Str("response_body", bodyStr).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v use_cache=%t response_body:%s", traceID, method, uri, status, elap, useCache, bodyStr)
 			} else {
 				//
 				// http success
 				//
-				log.Debug().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v", traceID, method, uri, status, elap)
+				log.Debug().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v use_cache=%t", traceID, method, uri, status, elap, useCache)
 			}
 		} else {
-			log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Msgf("ServeHTTP: traceID=%s method=%s uri=%s response_status=%d elapsed=%v response_error:%v", traceID, method, uri, status, elap, errFetch)
+			log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s uri=%s response_status=%d elapsed=%v use_cache=%t response_error:%v", traceID, method, uri, status, elap, useCache, errFetch)
 		}
+	}
+
+	span.SetAttributes(
+		traceMethod.String(method),
+		traceUri.String(uri),
+		traceResponseStatus.Int(resp.Status),
+		traceElapsed.String(elap.String()),
+		traceUseCache.Bool(useCache),
+	)
+	if isFetchError {
+		span.SetAttributes(traceResponseError.String(errFetch.Error()))
 	}
 
 	//
@@ -195,7 +271,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//
 	// send response status (2/3)
 	//
-	if errFetch == nil {
+	if !isFetchError {
 		w.WriteHeader(resp.Status)
 	} else {
 		w.WriteHeader(500)
@@ -204,7 +280,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//
 	// send response body (3/3)
 	//
-	if errFetch == nil {
+	if !isFetchError {
 		w.Write(resp.Body)
 	} else {
 		//
@@ -248,7 +324,6 @@ func (app *application) query(c context.Context, key string, useCache bool) (res
 		}
 
 		return resp, nil
-
 	}
 
 	resp, _, errFetch := doFetch(ctx, app.tracer, app.httpClient, app.backendURL, key)

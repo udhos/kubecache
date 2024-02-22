@@ -56,6 +56,16 @@ func doFetch(c context.Context, tracer trace.Tracer, httpClient *http.Client,
 		log.Error().Str("traceID", traceID).Str("method", method).Str("url", u).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Msgf("getter: traceID=%s method=%s url=%s response_status=%d elapsed=%v response_error:%v", traceID, method, u, status, elap, errFetch)
 	}
 
+	span.SetAttributes(
+		traceMethod.String(method),
+		traceUri.String(u),
+		traceResponseStatus.Int(resp.Status),
+		traceElapsed.String(elap.String()),
+	)
+	if errFetch != nil {
+		span.SetAttributes(traceResponseError.String(errFetch.Error()))
+	}
+
 	if errFetch != nil {
 		return resp, isErrorStatus, errFetch
 	}

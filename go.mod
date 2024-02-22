@@ -11,6 +11,7 @@ require (
 	github.com/udhos/kubegroup v0.9.1
 	github.com/udhos/otelconfig v0.1.8
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.48.0
+	go.opentelemetry.io/otel v1.23.1
 	go.opentelemetry.io/otel/trace v1.23.1
 	go.uber.org/automaxprocs v1.5.3
 )
@@ -77,7 +78,6 @@ require (
 	go.opentelemetry.io/contrib/propagators/b3 v1.23.0 // indirect
 	go.opentelemetry.io/contrib/propagators/jaeger v1.23.0 // indirect
 	go.opentelemetry.io/contrib/propagators/ot v1.23.0 // indirect
-	go.opentelemetry.io/otel v1.23.1 // indirect
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.23.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.23.1 // indirect
