@@ -58,7 +58,7 @@ func doFetch(c context.Context, tracer trace.Tracer, httpClient *http.Client,
 
 	span.SetAttributes(
 		traceMethod.String(method),
-		traceUri.String(u),
+		traceURI.String(u),
 		traceResponseStatus.Int(resp.Status),
 		traceElapsed.String(elap.String()),
 	)

@@ -192,7 +192,7 @@ func mustCache(method, uri string, restrictMethods []string, restrictRoutes []*r
 }
 
 var traceMethod = attribute.Key("method")
-var traceUri = attribute.Key("uri")
+var traceURI = attribute.Key("uri")
 var traceResponseStatus = attribute.Key("response_status")
 var traceResponseError = attribute.Key("response_error")
 var traceElapsed = attribute.Key("elapsed")
@@ -250,7 +250,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	span.SetAttributes(
 		traceMethod.String(method),
-		traceUri.String(uri),
+		traceURI.String(uri),
 		traceResponseStatus.Int(resp.Status),
 		traceElapsed.String(elap.String()),
 		traceUseCache.Bool(useCache),

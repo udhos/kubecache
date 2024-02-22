@@ -117,7 +117,7 @@ configMapProperties:
   # *empty* list means match *anything*.
   #
   #RESTRICT_ROUTE_REGEXP: '["^/develop", "^/homolog", "^/prod", "/develop/?$", "/homolog/?$", "/prod/?$"]'
-  #RESTRICT_METHOD: '["GET", "HEAD"]`'
+  #RESTRICT_METHOD: '["GET", "HEAD"]'
   #
   #BACKEND_TIMEOUT: 300s
   #CACHE_TTL: 300s
