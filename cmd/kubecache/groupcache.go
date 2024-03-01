@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/groupcache_exporter"
 	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
+	"github.com/udhos/groupcache_ratelimit/ratelimit"
 	"github.com/udhos/kubegroup/kubegroup"
 )
 
@@ -101,6 +102,8 @@ func startGroupcache(app *application) func() {
 	// 64 MB max per-node memory usage
 	app.cache = groupcache.NewGroupWithWorkspace(workspace, "path", app.cfg.groupcacheSizeBytes, getter)
 
+	app.limiter = newRatelimit(app.cfg.ratelimitInterval, app.cfg.ratelimitSlots, workspace)
+
 	//
 	// expose prometheus metrics for groupcache
 	//
@@ -108,7 +111,7 @@ func startGroupcache(app *application) func() {
 	g := modernprogram.New(app.cache)
 	labels := map[string]string{}
 	namespace := ""
-	collector := groupcache_exporter.NewExporter(namespace, labels, g)
+	collector := groupcache_exporter.NewExporter(namespace, labels, g, app.limiter.MetricsExporter())
 	app.registry.MustRegister(collector)
 
 	stop := func() {
@@ -116,4 +119,15 @@ func startGroupcache(app *application) func() {
 	}
 
 	return stop
+}
+
+func newRatelimit(interval time.Duration, slots int,
+	groupcacheWorkspace *groupcache.Workspace) *ratelimit.Limiter {
+	options := ratelimit.Options{
+		Interval:            interval,
+		Slots:               slots,
+		GroupcacheWorkspace: groupcacheWorkspace,
+	}
+
+	return ratelimit.New(options)
 }

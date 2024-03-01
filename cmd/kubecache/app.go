@@ -14,6 +14,7 @@ import (
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
+	"github.com/udhos/groupcache_ratelimit/ratelimit"
 	"github.com/udhos/otelconfig/oteltrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -34,6 +35,7 @@ type application struct {
 	restrictMethod      []string
 	backendURL          *url.URL
 	httpClient          *http.Client
+	limiter             *ratelimit.Limiter
 }
 
 func (app *application) run() {
@@ -197,6 +199,7 @@ var traceResponseStatus = attribute.Key("response_status")
 var traceResponseError = attribute.Key("response_error")
 var traceElapsed = attribute.Key("elapsed")
 var traceUseCache = attribute.Key("use_cache")
+var traceReqIP = attribute.Key("request_ip")
 
 func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
@@ -214,7 +217,9 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	useCache := mustCache(method, r.URL.RequestURI(), app.restrictMethod, app.restrictRouteRegexp)
 
-	resp, errFetch := app.query(ctx, key, useCache)
+	reqIP, _, _ := strings.Cut(r.RemoteAddr, ":")
+
+	resp, errFetch := app.query(ctx, key, reqIP, useCache)
 
 	isFetchError := errFetch != nil
 
@@ -236,15 +241,15 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				// http error
 				//
 				bodyStr := string(resp.Body)
-				log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Str("response_body", bodyStr).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v use_cache=%t response_body:%s", traceID, method, uri, status, elap, useCache, bodyStr)
+				log.Error().Str("traceID", traceID).Str("request_ip", reqIP).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Str("response_body", bodyStr).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v use_cache=%t response_body:%s", traceID, method, uri, status, elap, useCache, bodyStr)
 			} else {
 				//
 				// http success
 				//
-				log.Debug().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v use_cache=%t", traceID, method, uri, status, elap, useCache)
+				log.Debug().Str("traceID", traceID).Str("request_ip", reqIP).Str("method", method).Str("uri", uri).Int("response_status", status).Dur("elapsed", elap).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s url=%s response_status=%d elapsed=%v use_cache=%t", traceID, method, uri, status, elap, useCache)
 			}
 		} else {
-			log.Error().Str("traceID", traceID).Str("method", method).Str("uri", uri).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s uri=%s response_status=%d elapsed=%v use_cache=%t response_error:%v", traceID, method, uri, status, elap, useCache, errFetch)
+			log.Error().Str("traceID", traceID).Str("request_ip", reqIP).Str("method", method).Str("uri", uri).Int("response_status", status).Str("response_error", errFetch.Error()).Dur("elapsed", elap).Bool("use_cache", useCache).Msgf("ServeHTTP: traceID=%s method=%s uri=%s response_status=%d elapsed=%v use_cache=%t response_error:%v", traceID, method, uri, status, elap, useCache, errFetch)
 		}
 	}
 
@@ -254,6 +259,7 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		traceResponseStatus.Int(resp.Status),
 		traceElapsed.String(elap.String()),
 		traceUseCache.Bool(useCache),
+		traceReqIP.String(reqIP),
 	)
 	if isFetchError {
 		span.SetAttributes(traceResponseError.String(errFetch.Error()))
@@ -301,11 +307,26 @@ func isHTTPError(status int) bool {
 	return status < 200 || status > 299
 }
 
-func (app *application) query(c context.Context, key string, useCache bool) (response, error) {
+func (app *application) query(c context.Context, key, reqIP string, useCache bool) (response, error) {
 
 	const me = "app.query"
 	ctx, span := app.tracer.Start(c, me)
 	defer span.End()
+
+	accept, errRate := app.limiter.Consume(ctx, reqIP)
+	if errRate == nil {
+		if !accept {
+			msg := fmt.Sprintf("%s - %d - too many requests\n",
+				reqIP, http.StatusTooManyRequests)
+			resp := response{
+				Body:   []byte(msg),
+				Status: http.StatusTooManyRequests,
+			}
+			return resp, nil
+		}
+	} else {
+		log.Error().Msgf("ip='%s' key='%s' rate limit error:%v", reqIP, key, errRate)
+	}
 
 	if useCache {
 		var resp response
