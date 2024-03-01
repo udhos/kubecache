@@ -100,9 +100,11 @@ func startGroupcache(app *application) func() {
 	// https://talks.golang.org/2013/oscon-dl.slide#46
 	//
 	// 64 MB max per-node memory usage
-	app.cache = groupcache.NewGroupWithWorkspace(workspace, "path", app.cfg.groupcacheSizeBytes, getter)
+	app.cache = groupcache.NewGroupWithWorkspace(workspace, "path",
+		app.cfg.groupcacheSizeBytes, getter)
 
-	app.limiter = newRatelimit(app.cfg.ratelimitInterval, app.cfg.ratelimitSlots, workspace)
+	app.limiter = newRatelimit(app.cfg.ratelimitInterval,
+		app.cfg.ratelimitSlots, workspace)
 
 	//
 	// expose prometheus metrics for groupcache
@@ -111,7 +113,8 @@ func startGroupcache(app *application) func() {
 	g := modernprogram.New(app.cache)
 	labels := map[string]string{}
 	namespace := ""
-	collector := groupcache_exporter.NewExporter(namespace, labels, g, app.limiter.MetricsExporter())
+	collector := groupcache_exporter.NewExporter(namespace, labels, g,
+		app.limiter.MetricsExporter())
 	app.registry.MustRegister(collector)
 
 	stop := func() {

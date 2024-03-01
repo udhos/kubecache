@@ -171,6 +171,9 @@ func query(name, expected, u string) (time.Duration, error) {
 func envCacheAnything() {
 	os.Setenv("RESTRICT_ROUTE_REGEXP", "[]")
 	os.Setenv("RESTRICT_METHOD", "[]")
+
+	//os.Setenv("RATELIMIT_INTERVAL", "10s")
+	//os.Setenv("RATELIMIT_SLOTS", "1000")
 }
 
 func test2(t *testing.T, name, full string) {

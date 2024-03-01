@@ -7,27 +7,29 @@ import (
 )
 
 type config struct {
-	debugLog                  bool
-	listenAddr                string
-	backendURL                string
-	restrictRouteRegexp       string
-	restrictMethod            string
-	backendTimeout            time.Duration
-	cacheTTL                  time.Duration
-	cacheErrorTTL             time.Duration
-	healthAddr                string
-	healthPath                string
-	metricsAddr               string
-	metricsPath               string
-	metricsNamespace          string
-	metricsBucketsLatencyHTTP []float64
-	groupcachePort            string
-	groupcacheSizeBytes       int64
-	kubegroupMetricsNamespace string
-	kubegroupDebug            bool
-	kubegroupListerInterval   time.Duration
-	ratelimitInterval         time.Duration
-	ratelimitSlots            int
+	debugLog                      bool
+	listenAddr                    string
+	backendURL                    string
+	restrictRouteRegexp           string
+	restrictMethod                string
+	backendTimeout                time.Duration
+	cacheTTL                      time.Duration
+	cacheErrorTTL                 time.Duration
+	healthAddr                    string
+	healthPath                    string
+	metricsAddr                   string
+	metricsPath                   string
+	metricsNamespace              string
+	metricsBucketsLatencyHTTP     []float64
+	groupcachePort                string
+	groupcacheSizeBytes           int64
+	kubegroupMetricsNamespace     string
+	kubegroupDebug                bool
+	kubegroupListerInterval       time.Duration
+	ratelimitInterval             time.Duration
+	ratelimitSlots                int
+	ratelimitRemoveBeforeReinsert bool
+	ratelimitReinsertExpired      bool
 }
 
 func newConfig(roleSessionName string) config {
