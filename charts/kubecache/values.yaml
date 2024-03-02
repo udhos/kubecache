@@ -37,6 +37,7 @@ redeploy: always
 
 podAnnotations:
   "sidecar.istio.io/inject": "true"
+  "sidecar.istio.io/interceptionMode": "TPROXY" # REDIRECT or TPROXY
   "prometheus.io/scrape": "true"
   "prometheus.io/path": /metrics
   "prometheus.io/port": "3000"
