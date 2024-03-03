@@ -167,8 +167,8 @@ github.com/udhos/boilerplate v1.2.3 h1:ldn9GJ8fhNbhcpY0qson3i8j1pmhDr285aK4goWYh
 github.com/udhos/boilerplate v1.2.3/go.mod h1:tm08k2yWpsSl3KByKzV01JGrycaV0sQ1j+zrj93DBtI=
 github.com/udhos/groupcache_exporter v0.1.0 h1:1pXP7c00VX2YTvCMo4CO3d/nv2rWq/0JOlnDwb6bO8s=
 github.com/udhos/groupcache_exporter v0.1.0/go.mod h1:CD1BGchO6jV4u6aarWVXkbr7UVztizOj8Bi8tJ2gN/A=
-github.com/udhos/groupcache_ratelimit v0.0.9 h1:B0ysuIBUl9eaekwu/a3MXNZ8WgCY2ILuIrTssRN5pCI=
-github.com/udhos/groupcache_ratelimit v0.0.9/go.mod h1:8sDwE5bG37SUn0bBh1phyfrkHJe4KlR4w0xYp/nzWCI=
+github.com/udhos/groupcache_ratelimit v0.1.0 h1:qToj5IyGixsSJixbp03dkEh2Uhnlozj+iSyjia7Z644=
+github.com/udhos/groupcache_ratelimit v0.1.0/go.mod h1:8sDwE5bG37SUn0bBh1phyfrkHJe4KlR4w0xYp/nzWCI=
 github.com/udhos/kubegroup v0.9.1 h1:cx2Qmh2AFw+UWW2Zzt+p31r3xa9apkcynJSKwHzdnXc=
 github.com/udhos/kubegroup v0.9.1/go.mod h1:/Q7YBVnftXeeNVkLe2AllGn7g7Ahpf0WdwgLx4521/Q=
 github.com/udhos/otelconfig v0.1.8 h1:RREwQibbnvH4C+SbcWXRJRdi+f9Xa202ZKjLiJ8z7Mk=

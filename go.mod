@@ -8,7 +8,7 @@ require (
 	github.com/rs/zerolog v1.32.0
 	github.com/udhos/boilerplate v1.2.3
 	github.com/udhos/groupcache_exporter v0.1.0
-	github.com/udhos/groupcache_ratelimit v0.0.9
+	github.com/udhos/groupcache_ratelimit v0.1.0
 	github.com/udhos/kubegroup v0.9.1
 	github.com/udhos/otelconfig v0.1.8
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.48.0
