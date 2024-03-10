@@ -95,7 +95,8 @@ func testBody(t *testing.T, data bodyTestCase) {
 	os.Setenv("BACKEND_URL", s.URL)
 	envCacheAnything()
 
-	app := newApplication("test")
+	const forceNamespaceDefault = true
+	app := newApplication("test", forceNamespaceDefault)
 	defer app.stop()
 	go app.run()
 
@@ -208,7 +209,8 @@ func test2(t *testing.T, name, full string) {
 	os.Setenv("BACKEND_URL", s.URL)
 	envCacheAnything()
 
-	app := newApplication("test")
+	const forceNamespaceDefault = true
+	app := newApplication("test", forceNamespaceDefault)
 	defer app.stop()
 	go app.run()
 

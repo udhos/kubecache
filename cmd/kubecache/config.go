@@ -25,7 +25,7 @@ type config struct {
 	groupcacheSizeBytes       int64
 	kubegroupMetricsNamespace string
 	kubegroupDebug            bool
-	kubegroupListerInterval   time.Duration
+	kubegroupLabelSelector    string
 	ratelimitInterval         time.Duration
 	ratelimitSlots            int
 }
@@ -59,7 +59,7 @@ func newConfig(roleSessionName string) config {
 		groupcacheSizeBytes:       env.Int64("GROUPCACHE_SIZE_BYTES", 100_000_000),
 		kubegroupMetricsNamespace: env.String("KUBEGROUP_METRICS_NAMESPACE", ""),
 		kubegroupDebug:            env.Bool("KUBEGROUP_DEBUG", true),
-		kubegroupListerInterval:   env.Duration("KUBEGROUP_LISTER_INTERVAL", 20*time.Second),
+		kubegroupLabelSelector:    env.String("KUBEGROUP_LABEL_SELECTOR", "app=kubecache"),
 		ratelimitInterval:         env.Duration("RATELIMIT_INTERVAL", 10*time.Second),
 		ratelimitSlots:            env.Int("RATELIMIT_SLOTS", 5),
 	}

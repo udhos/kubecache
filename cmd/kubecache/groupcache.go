@@ -12,10 +12,11 @@ import (
 	"github.com/udhos/groupcache_exporter"
 	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
 	"github.com/udhos/groupcache_ratelimit/ratelimit"
+	"github.com/udhos/kube/kubeclient"
 	"github.com/udhos/kubegroup/kubegroup"
 )
 
-func startGroupcache(app *application) func() {
+func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 
 	workspace := groupcache.NewWorkspace()
 
@@ -47,16 +48,24 @@ func startGroupcache(app *application) func() {
 	// start watcher for addresses of peers
 	//
 
+	const debug = true
+
+	clientsetOpt := kubeclient.Options{DebugLog: app.cfg.kubegroupDebug}
+	clientset, errClientset := kubeclient.New(clientsetOpt)
+	if errClientset != nil {
+		log.Fatal().Msgf("startGroupcache: kubeclient: %v", errClientset)
+	}
+
 	options := kubegroup.Options{
-		Pool:              pool,
-		GroupCachePort:    app.cfg.groupcachePort,
-		MetricsRegisterer: app.registry,
-		MetricsGatherer:   app.registry,
-		MetricsNamespace:  app.cfg.kubegroupMetricsNamespace,
-		Debug:             app.cfg.kubegroupDebug,
-		ListerInterval:    app.cfg.kubegroupListerInterval,
-		//PodLabelKey:    "app",         // default is "app"
-		//PodLabelValue:  "my-app-name", // default is current PODs label value for label key
+		Client:                clientset,
+		LabelSelector:         app.cfg.kubegroupLabelSelector,
+		Pool:                  pool,
+		GroupCachePort:        app.cfg.groupcachePort,
+		MetricsRegisterer:     app.registry,
+		MetricsGatherer:       app.registry,
+		MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
+		Debug:                 app.cfg.kubegroupDebug,
+		ForceNamespaceDefault: forceNamespaceDefault,
 	}
 
 	kg, errKg := kubegroup.UpdatePeers(options)

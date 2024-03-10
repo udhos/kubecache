@@ -52,19 +52,19 @@ func (app *application) stop() {
 	httpShutdown(app.serverMetrics, "metrics", timeout)
 }
 
-func newApplication(me string) *application {
+func newApplication(me string, forceNamespaceDefault bool) *application {
 	app := &application{
 		registry: prometheus.NewRegistry(),
 		cfg:      newConfig(me),
 		tracer:   oteltrace.NewNoopTracer(),
 	}
 
-	initApplication(app)
+	initApplication(app, forceNamespaceDefault)
 
 	return app
 }
 
-func initApplication(app *application) {
+func initApplication(app *application, forceNamespaceDefault bool) {
 
 	{
 		u, errURL := url.Parse(app.cfg.backendURL)
@@ -116,7 +116,7 @@ func initApplication(app *application) {
 	//
 	// start group cache
 	//
-	startGroupcache(app)
+	startGroupcache(app, forceNamespaceDefault)
 
 	//
 	// register application route
