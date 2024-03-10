@@ -109,6 +109,7 @@ podHealthCheck:
 # See: https://stackoverflow.com/questions/72816925/helm-templating-in-configmap-for-values-yaml
 #
 configMapProperties:
+  AUTOMEMLIMIT_DEBUG: "true"
   #SECRET_ROLE_ARN: ""
   #DEBUG_LOG: "true"
   #LISTEN_ADDR: ":8080"

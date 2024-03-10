@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	_ "github.com/KimMachineGun/automemlimit"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/boilerplate/boilerplate"
