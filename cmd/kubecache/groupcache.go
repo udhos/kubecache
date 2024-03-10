@@ -48,8 +48,6 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	// start watcher for addresses of peers
 	//
 
-	const debug = true
-
 	clientsetOpt := kubeclient.Options{DebugLog: app.cfg.kubegroupDebug}
 	clientset, errClientset := kubeclient.New(clientsetOpt)
 	if errClientset != nil {
