@@ -26,8 +26,6 @@ type config struct {
 	kubegroupMetricsNamespace string
 	kubegroupDebug            bool
 	kubegroupLabelSelector    string
-	ratelimitInterval         time.Duration
-	ratelimitSlots            int
 }
 
 func newConfig(roleSessionName string) config {
@@ -60,7 +58,5 @@ func newConfig(roleSessionName string) config {
 		kubegroupMetricsNamespace: env.String("KUBEGROUP_METRICS_NAMESPACE", ""),
 		kubegroupDebug:            env.Bool("KUBEGROUP_DEBUG", true),
 		kubegroupLabelSelector:    env.String("KUBEGROUP_LABEL_SELECTOR", "app=kubecache"),
-		ratelimitInterval:         env.Duration("RATELIMIT_INTERVAL", 10*time.Second),
-		ratelimitSlots:            env.Int("RATELIMIT_SLOTS", 5),
 	}
 }

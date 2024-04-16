@@ -9,7 +9,6 @@ require (
 	github.com/rs/zerolog v1.32.0
 	github.com/udhos/boilerplate v1.2.7
 	github.com/udhos/groupcache_exporter v0.1.0
-	github.com/udhos/groupcache_ratelimit v0.1.0
 	github.com/udhos/kube v0.0.1
 	github.com/udhos/kubegroup v1.0.2
 	github.com/udhos/otelconfig v0.1.8

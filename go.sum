@@ -183,8 +183,6 @@ github.com/udhos/boilerplate v1.2.7 h1:VemmQ2ucP8evD8ys3WrssYCDwd8wdoAhr+rq9wIGb
 github.com/udhos/boilerplate v1.2.7/go.mod h1:Qee+p5PpI0WH6pYSFCp0FUOxpbZlnBxNJ48CBCXvrck=
 github.com/udhos/groupcache_exporter v0.1.0 h1:1pXP7c00VX2YTvCMo4CO3d/nv2rWq/0JOlnDwb6bO8s=
 github.com/udhos/groupcache_exporter v0.1.0/go.mod h1:CD1BGchO6jV4u6aarWVXkbr7UVztizOj8Bi8tJ2gN/A=
-github.com/udhos/groupcache_ratelimit v0.1.0 h1:qToj5IyGixsSJixbp03dkEh2Uhnlozj+iSyjia7Z644=
-github.com/udhos/groupcache_ratelimit v0.1.0/go.mod h1:8sDwE5bG37SUn0bBh1phyfrkHJe4KlR4w0xYp/nzWCI=
 github.com/udhos/kube v0.0.1 h1:FFWNyn+xf4aHZTaldKZuueu6ZQqmJR76I4OrfeJo9W4=
 github.com/udhos/kube v0.0.1/go.mod h1:UgnFniZC6fLV5vEvAqpDvN+rY+aQJwzRM1ejhK2yzEI=
 github.com/udhos/kubegroup v1.0.2 h1:Qkg29U0j0gXwVwbE7rMv7n7VMcb0xG9oMogi08o8Rss=

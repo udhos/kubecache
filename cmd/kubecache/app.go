@@ -14,7 +14,6 @@ import (
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
-	"github.com/udhos/groupcache_ratelimit/ratelimit"
 	"github.com/udhos/otelconfig/oteltrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -35,7 +34,6 @@ type application struct {
 	restrictMethod      []string
 	backendURL          *url.URL
 	httpClient          *http.Client
-	limiter             *ratelimit.Limiter
 }
 
 func (app *application) run() {
@@ -307,26 +305,11 @@ func isHTTPError(status int) bool {
 	return status < 200 || status > 299
 }
 
-func (app *application) query(c context.Context, key, reqIP string, useCache bool) (response, error) {
+func (app *application) query(c context.Context, key, _ /*reqIP*/ string, useCache bool) (response, error) {
 
 	const me = "app.query"
 	ctx, span := app.tracer.Start(c, me)
 	defer span.End()
-
-	accept, errRate := app.limiter.Consume(ctx, reqIP)
-	if errRate == nil {
-		if !accept {
-			msg := fmt.Sprintf("%s - %d - too many requests\n",
-				reqIP, http.StatusTooManyRequests)
-			resp := response{
-				Body:   []byte(msg),
-				Status: http.StatusTooManyRequests,
-			}
-			return resp, nil
-		}
-	} else {
-		log.Error().Msgf("ip='%s' key='%s' rate limit error:%v", reqIP, key, errRate)
-	}
 
 	if useCache {
 		var resp response
