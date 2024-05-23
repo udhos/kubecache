@@ -30,6 +30,7 @@ type application struct {
 	serverMetrics       *http.Server
 	serverGroupCache    *http.Server
 	cache               *groupcache.Group
+	groupcacheClose     func()
 	restrictRouteRegexp []*regexp.Regexp
 	restrictMethod      []string
 	backendURL          *url.URL
@@ -43,6 +44,7 @@ func (app *application) run() {
 }
 
 func (app *application) stop() {
+	app.groupcacheClose()
 	const timeout = 5 * time.Second
 	httpShutdown(app.serverHealth, "health", timeout)
 	httpShutdown(app.serverMain, "main", timeout)
@@ -114,7 +116,11 @@ func initApplication(app *application, forceNamespaceDefault bool) {
 	//
 	// start group cache
 	//
-	startGroupcache(app, forceNamespaceDefault)
+	if app.cfg.groupcacheVersion == 3 {
+		app.groupcacheClose = startGroupcache3(app, forceNamespaceDefault)
+	} else {
+		app.groupcacheClose = startGroupcache(app, forceNamespaceDefault)
+	}
 
 	//
 	// register application route
