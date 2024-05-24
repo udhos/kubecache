@@ -95,8 +95,8 @@ func testBody(t *testing.T, data bodyTestCase) {
 	os.Setenv("BACKEND_URL", s.URL)
 	envCacheAnything()
 
-	const forceNamespaceDefault = true
-	app := newApplication("test", forceNamespaceDefault)
+	os.Setenv("KUBEGROUP_FORCE_NAMESPACE_DEFAULT", "true")
+	app := newApplication("test")
 	defer app.stop()
 	go app.run()
 
@@ -209,8 +209,8 @@ func test2(t *testing.T, name, full string) {
 	os.Setenv("BACKEND_URL", s.URL)
 	envCacheAnything()
 
-	const forceNamespaceDefault = true
-	app := newApplication("test", forceNamespaceDefault)
+	os.Setenv("KUBEGROUP_FORCE_NAMESPACE_DEFAULT", "true")
+	app := newApplication("test")
 	defer app.stop()
 	go app.run()
 

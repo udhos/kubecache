@@ -1,16 +1,17 @@
 module github.com/udhos/kubecache
 
-go 1.22.1
+go 1.22.3
 
 require (
 	github.com/KimMachineGun/automemlimit v0.5.0
+	github.com/groupcache/groupcache-go/v3 v3.0.0
 	github.com/modernprogram/groupcache/v2 v2.6.0
 	github.com/prometheus/client_golang v1.19.0
 	github.com/rs/zerolog v1.32.0
 	github.com/udhos/boilerplate v1.2.7
 	github.com/udhos/groupcache_exporter v0.1.0
 	github.com/udhos/kube v0.0.1
-	github.com/udhos/kubegroup v1.0.2
+	github.com/udhos/kubegroup v1.1.0
 	github.com/udhos/otelconfig v0.1.8
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.50.0
 	go.opentelemetry.io/otel v1.25.0
@@ -85,7 +86,7 @@ require (
 	github.com/segmentio/fasthash v1.0.3 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/udhos/kubepodinformer v0.0.3 // indirect
+	github.com/udhos/kubepodinformer v0.1.0 // indirect
 	go.opentelemetry.io/contrib/propagators/autoprop v0.50.0 // indirect
 	go.opentelemetry.io/contrib/propagators/aws v1.25.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.25.0 // indirect
@@ -101,11 +102,11 @@ require (
 	go.opentelemetry.io/proto/otlp v1.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240409090435-93d18d7e34b8 // indirect
-	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/oauth2 v0.19.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
-	golang.org/x/term v0.19.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/term v0.20.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240415180920-8c6c420018be // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240415180920-8c6c420018be // indirect
