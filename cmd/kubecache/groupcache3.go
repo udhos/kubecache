@@ -4,44 +4,35 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/modernprogram/groupcache/v2"
+	"github.com/groupcache/groupcache-go/v3"
+	"github.com/groupcache/groupcache-go/v3/transport"
 	"github.com/rs/zerolog/log"
-	"github.com/udhos/groupcache_exporter"
-	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
 	"github.com/udhos/kube/kubeclient"
 	"github.com/udhos/kubegroup/kubegroup"
 )
 
 func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 
-	workspace := groupcache.NewWorkspace()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	//
-	// create groupcache pool
+	// create groupcache instance
 	//
 
-	myURL, errURL := kubegroup.FindMyURL(app.cfg.groupcachePort)
-	if errURL != nil {
-		log.Fatal().Msgf("groupcache my URL: %v", errURL)
+	myIP, errAddr := kubegroup.FindMyAddress()
+	if errAddr != nil {
+		log.Fatal().Msgf("groupcache my address: %v", errAddr)
 	}
-	log.Info().Msgf("groupcache my URL: %v", errURL)
+	log.Info().Msgf("groupcache my address: %s", myIP)
 
-	pool := groupcache.NewHTTPPoolOptsWithWorkspace(workspace, myURL, &groupcache.HTTPPoolOptions{})
+	myAddr := myIP + app.cfg.groupcachePort
 
-	//
-	// start groupcache server
-	//
-
-	app.serverGroupCache = &http.Server{Addr: app.cfg.groupcachePort, Handler: pool}
-
-	go func() {
-		log.Info().Msgf("groupcache server: listening on %s", app.cfg.groupcachePort)
-		err := app.serverGroupCache.ListenAndServe()
-		log.Error().Msgf("groupcache server: exited: %v", err)
-	}()
+	daemon, errDaemon := groupcache.ListenAndServe(ctx, myAddr, groupcache.Options{})
+	if errDaemon != nil {
+		log.Fatal().Msgf("groupcache3 daemon: %v", errDaemon)
+	}
 
 	//
 	// start watcher for addresses of peers
@@ -50,13 +41,13 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 	clientsetOpt := kubeclient.Options{DebugLog: app.cfg.kubegroupDebug}
 	clientset, errClientset := kubeclient.New(clientsetOpt)
 	if errClientset != nil {
-		log.Fatal().Msgf("startGroupcache: kubeclient: %v", errClientset)
+		log.Fatal().Msgf("kubeclient: %v", errClientset)
 	}
 
 	options := kubegroup.Options{
 		Client:                clientset,
 		LabelSelector:         app.cfg.kubegroupLabelSelector,
-		Pool:                  pool,
+		Peers:                 daemon,
 		GroupCachePort:        app.cfg.groupcachePort,
 		MetricsRegisterer:     app.registry,
 		MetricsGatherer:       app.registry,
@@ -74,8 +65,45 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 	// create cache
 	//
 
+	/*
+		getter := groupcache.GetterFunc(
+			func(c context.Context, key string, dest groupcache.Sink) error {
+
+				const me = "groupcache.getter"
+				ctx, span := app.tracer.Start(c, me)
+				defer span.End()
+
+				resp, isErrorStatus, errFetch := doFetch(ctx, app.tracer, app.httpClient, app.backendURL, key)
+				if errFetch != nil {
+					return errFetch
+				}
+
+				data, errJ := json.Marshal(resp)
+				if errJ != nil {
+					return fmt.Errorf("%s: marshal json response: %v", me, errJ)
+				}
+
+				var ttl time.Duration
+				if isErrorStatus {
+					ttl = app.cfg.cacheErrorTTL
+				} else {
+					ttl = app.cfg.cacheTTL
+				}
+				expire := time.Now().Add(ttl)
+
+				return dest.SetBytes(data, expire)
+			},
+		)
+
+		// https://talks.golang.org/2013/oscon-dl.slide#46
+		//
+		// 64 MB max per-node memory usage
+		app.cache = groupcache.NewGroupWithWorkspace(workspace, "path",
+			app.cfg.groupcacheSizeBytes, getter)
+	*/
+
 	getter := groupcache.GetterFunc(
-		func(c context.Context, key string, dest groupcache.Sink) error {
+		func(c context.Context, key string, dest transport.Sink) error {
 
 			const me = "groupcache.getter"
 			ctx, span := app.tracer.Start(c, me)
@@ -103,24 +131,36 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 		},
 	)
 
-	// https://talks.golang.org/2013/oscon-dl.slide#46
-	//
-	// 64 MB max per-node memory usage
-	app.cache = groupcache.NewGroupWithWorkspace(workspace, "path",
-		app.cfg.groupcacheSizeBytes, getter)
+	cache, errGroup := daemon.NewGroup("files", app.cfg.groupcacheSizeBytes, getter)
+	if errGroup != nil {
+		log.Fatal().Msgf("new group error: %v", errGroup)
+	}
+
+	app.cache3 = cache
 
 	//
 	// expose prometheus metrics for groupcache
 	//
 
-	g := modernprogram.New(app.cache)
-	labels := map[string]string{}
-	namespace := ""
-	collector := groupcache_exporter.NewExporter(namespace, labels, g)
-	app.registry.MustRegister(collector)
+	/*
+		g := modernprogram.New(app.cache)
+		labels := map[string]string{}
+		namespace := ""
+		collector := groupcache_exporter.NewExporter(namespace, labels, g)
+		app.registry.MustRegister(collector)
+	*/
+	log.Error().Msgf("XXX TODO FIXME WRITEME groupcache3 expose prometheus metrics")
 
 	stop := func() {
+		{
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := daemon.Shutdown(ctx); err != nil {
+				log.Error().Msgf("groupcache3 daemon shutdown error: %v", err)
+			}
+		}
 		kg.Close()
+		cancel()
 	}
 
 	return stop

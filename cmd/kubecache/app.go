@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/groupcache/groupcache-go/v3/transport"
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
@@ -30,6 +31,7 @@ type application struct {
 	serverMetrics       *http.Server
 	serverGroupCache    *http.Server
 	cache               *groupcache.Group
+	cache3              transport.Group
 	groupcacheClose     func()
 	restrictRouteRegexp []*regexp.Regexp
 	restrictMethod      []string
@@ -52,14 +54,14 @@ func (app *application) stop() {
 	httpShutdown(app.serverMetrics, "metrics", timeout)
 }
 
-func newApplication(me string, forceNamespaceDefault bool) *application {
+func newApplication(me string) *application {
 	app := &application{
 		registry: prometheus.NewRegistry(),
 		cfg:      newConfig(me),
 		tracer:   oteltrace.NewNoopTracer(),
 	}
 
-	initApplication(app, forceNamespaceDefault)
+	initApplication(app, app.cfg.kubegroupForceNamespaceDefault)
 
 	return app
 }
@@ -321,10 +323,24 @@ func (app *application) query(c context.Context, key, _ /*reqIP*/ string, useCac
 		var resp response
 		var data []byte
 
-		if errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data)); errGet != nil {
-			log.Error().Msgf("key='%s' cache error:%v", key, errGet)
-			resp.Status = 500
-			return resp, errGet
+		if app.cfg.groupcacheVersion == 3 {
+			//
+			// groupcache 3
+			//
+			if errGet := app.cache3.Get(ctx, key, transport.AllocatingByteSliceSink(&data)); errGet != nil {
+				log.Error().Msgf("key='%s' cache error:%v", key, errGet)
+				resp.Status = 500
+				return resp, errGet
+			}
+		} else {
+			//
+			// groupcache 2
+			//
+			if errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data)); errGet != nil {
+				log.Error().Msgf("key='%s' cache error:%v", key, errGet)
+				resp.Status = 500
+				return resp, errGet
+			}
 		}
 
 		if errJ := json.Unmarshal(data, &resp); errJ != nil {

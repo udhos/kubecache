@@ -52,8 +52,7 @@ func main() {
 	// application
 	//
 
-	const forceNamespaceDefault = false
-	app := newApplication(me, forceNamespaceDefault)
+	app := newApplication(me)
 
 	if app.cfg.debugLog {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)

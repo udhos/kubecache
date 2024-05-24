@@ -27,7 +27,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	if errURL != nil {
 		log.Fatal().Msgf("groupcache my URL: %v", errURL)
 	}
-	log.Info().Msgf("groupcache my URL: %v", errURL)
+	log.Info().Msgf("groupcache my URL: %s", myURL)
 
 	pool := groupcache.NewHTTPPoolOptsWithWorkspace(workspace, myURL, &groupcache.HTTPPoolOptions{})
 
