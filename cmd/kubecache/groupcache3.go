@@ -65,43 +65,6 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 	// create cache
 	//
 
-	/*
-		getter := groupcache.GetterFunc(
-			func(c context.Context, key string, dest groupcache.Sink) error {
-
-				const me = "groupcache.getter"
-				ctx, span := app.tracer.Start(c, me)
-				defer span.End()
-
-				resp, isErrorStatus, errFetch := doFetch(ctx, app.tracer, app.httpClient, app.backendURL, key)
-				if errFetch != nil {
-					return errFetch
-				}
-
-				data, errJ := json.Marshal(resp)
-				if errJ != nil {
-					return fmt.Errorf("%s: marshal json response: %v", me, errJ)
-				}
-
-				var ttl time.Duration
-				if isErrorStatus {
-					ttl = app.cfg.cacheErrorTTL
-				} else {
-					ttl = app.cfg.cacheTTL
-				}
-				expire := time.Now().Add(ttl)
-
-				return dest.SetBytes(data, expire)
-			},
-		)
-
-		// https://talks.golang.org/2013/oscon-dl.slide#46
-		//
-		// 64 MB max per-node memory usage
-		app.cache = groupcache.NewGroupWithWorkspace(workspace, "path",
-			app.cfg.groupcacheSizeBytes, getter)
-	*/
-
 	getter := groupcache.GetterFunc(
 		func(c context.Context, key string, dest transport.Sink) error {
 
