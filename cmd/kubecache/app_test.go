@@ -77,7 +77,7 @@ func TestBody(t *testing.T) {
 func testBody(t *testing.T, data bodyTestCase) {
 	sResp := &sResponse{}
 
-	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ /*r*/ *http.Request) {
 
 		// 1/3: header
 		// 2/3: status code

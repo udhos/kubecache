@@ -62,7 +62,7 @@ func main() {
 	// initialize tracing
 	//
 
-	{
+	if app.cfg.trace {
 		options := oteltrace.TraceOptions{
 			DefaultService:     me,
 			NoopTracerProvider: false,
@@ -77,6 +77,8 @@ func main() {
 		defer cancel()
 
 		app.tracer = tracer
+	} else {
+		app.tracer = oteltrace.NewNoopTracer()
 	}
 
 	//

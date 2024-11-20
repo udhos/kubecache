@@ -7,6 +7,7 @@ import (
 )
 
 type config struct {
+	trace                          bool
 	debugLog                       bool
 	listenAddr                     string
 	backendURL                     string
@@ -35,6 +36,7 @@ func newConfig(roleSessionName string) config {
 	env := envconfig.NewSimple(roleSessionName)
 
 	return config{
+		trace:      env.Bool("TRACE", true),
 		debugLog:   env.Bool("DEBUG_LOG", true),
 		listenAddr: env.String("LISTEN_ADDR", ":8080"),
 		backendURL: env.String("BACKEND_URL", "http://config-server:9000"),
