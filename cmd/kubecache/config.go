@@ -25,6 +25,7 @@ type config struct {
 	groupcacheVersion              int
 	groupcachePort                 string
 	groupcacheSizeBytes            int64
+	groupcacheDisablePurgeExpired  bool
 	kubegroupMetricsNamespace      string
 	kubegroupDebug                 bool
 	kubegroupLabelSelector         string
@@ -60,6 +61,7 @@ func newConfig(roleSessionName string) config {
 		groupcacheVersion:              env.Int("GROUPCACHE_VERSION", 3),
 		groupcachePort:                 env.String("GROUPCACHE_PORT", ":5000"),
 		groupcacheSizeBytes:            env.Int64("GROUPCACHE_SIZE_BYTES", 100_000_000),
+		groupcacheDisablePurgeExpired:  env.Bool("GROUPCACHE_DISABLE_PURGE_EXPIRED", false),
 		kubegroupMetricsNamespace:      env.String("KUBEGROUP_METRICS_NAMESPACE", ""),
 		kubegroupDebug:                 env.Bool("KUBEGROUP_DEBUG", true),
 		kubegroupLabelSelector:         env.String("KUBEGROUP_LABEL_SELECTOR", "app=kubecache"),
