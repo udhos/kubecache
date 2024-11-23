@@ -5,11 +5,11 @@ go 1.23.3
 require (
 	github.com/KimMachineGun/automemlimit v0.6.1
 	github.com/groupcache/groupcache-go/v3 v3.0.0
-	github.com/modernprogram/groupcache/v2 v2.6.2
+	github.com/modernprogram/groupcache/v2 v2.6.3
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rs/zerolog v1.33.0
 	github.com/udhos/boilerplate v1.6.0
-	github.com/udhos/groupcache_exporter v1.0.1
+	github.com/udhos/groupcache_exporter v1.0.3
 	github.com/udhos/kube v1.0.0
 	github.com/udhos/kubegroup v1.1.3
 	github.com/udhos/otelconfig v1.0.0
