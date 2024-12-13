@@ -103,11 +103,18 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 		},
 	)
 
+	groupcacheOptions := groupcache.Options{
+		Workspace:    workspace,
+		Name:         "path",
+		PurgeExpired: !app.cfg.groupcacheDisablePurgeExpired,
+		CacheBytes:   app.cfg.groupcacheSizeBytes,
+		Getter:       getter,
+	}
+
 	// https://talks.golang.org/2013/oscon-dl.slide#46
 	//
 	// 64 MB max per-node memory usage
-	app.cache = groupcache.NewGroupWithWorkspace(workspace, "path",
-		!app.cfg.groupcacheDisablePurgeExpired, app.cfg.groupcacheSizeBytes, getter)
+	app.cache = groupcache.NewGroupWithWorkspace(groupcacheOptions)
 
 	//
 	// expose prometheus metrics for groupcache
