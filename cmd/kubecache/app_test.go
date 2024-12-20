@@ -240,7 +240,7 @@ func test2(t *testing.T, name, full string) {
 	{
 		elap, err := query(name, expected, u)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 		}
 		if elap < slowServerDelay {
@@ -257,7 +257,7 @@ func test2(t *testing.T, name, full string) {
 	{
 		elap, err := query(name, expected, u)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 		}
 		if elap >= fastResponse {
@@ -274,7 +274,7 @@ func test2(t *testing.T, name, full string) {
 	{
 		elap, err := query(name, expected, u)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err.Error())
 			return
 		}
 		if elap >= fastResponse {
