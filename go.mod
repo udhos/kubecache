@@ -11,7 +11,7 @@ require (
 	github.com/udhos/boilerplate v1.6.3
 	github.com/udhos/groupcache_exporter v1.0.5
 	github.com/udhos/kube v1.0.2
-	github.com/udhos/kubegroup v1.1.6
+	github.com/udhos/kubegroup v1.1.7
 	github.com/udhos/otelconfig v1.0.2
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.58.0
 	go.opentelemetry.io/otel v1.33.0

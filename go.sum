@@ -247,8 +247,8 @@ github.com/udhos/groupcache_exporter v1.0.5 h1:dc2hLNj6INF3mjWKZRxQ2iuWEg7taTqtp
 github.com/udhos/groupcache_exporter v1.0.5/go.mod h1:CdNwpviSdWqM1Zid87soHaXxxD8GEpcZvkZ33IeqWKs=
 github.com/udhos/kube v1.0.2 h1:HU5v8aGg5UH348ivom1r6eaf2wQ7YMLVfOmF6W45y9Y=
 github.com/udhos/kube v1.0.2/go.mod h1:vA+EkO+waJzLUXIzNwZVc6hGOjyojVtgUsnix3LWN7Y=
-github.com/udhos/kubegroup v1.1.6 h1:P4QJKpzTE1+ultXXU2oCIZ+V28i+MvJ+xque+u4FSSk=
-github.com/udhos/kubegroup v1.1.6/go.mod h1:3N3y0eJaU+PytkzJ4m2U6IfYWSBguqDrvdQByLACvik=
+github.com/udhos/kubegroup v1.1.7 h1:0MxdysTk2LyqL4AUGbEXJHXu3tbNE6llPicngr2ec0g=
+github.com/udhos/kubegroup v1.1.7/go.mod h1:gB4zi/zdY6BK0eo9i1RboCIooTxmcEhYJrsUJZi1oIs=
 github.com/udhos/kubepodinformer v1.0.1 h1:Wqi9MhrFLeoAPcJq0rSgoJ9teTZ7qLPZHz3FHzquyyU=
 github.com/udhos/kubepodinformer v1.0.1/go.mod h1:O+cuEEoriEt6z+/184nWoh6arIHaGadkV1zfLbTya0Q=
 github.com/udhos/otelconfig v1.0.2 h1:F3QCZq8RttKegF7wa3p/G3bbOdwoRBCDAdk62WDFElw=
