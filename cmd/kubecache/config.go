@@ -30,6 +30,9 @@ type config struct {
 	kubegroupDebug                 bool
 	kubegroupLabelSelector         string
 	kubegroupForceNamespaceDefault bool
+	compute                        string
+	forceSingleTask                bool
+	ecsTaskDiscoveryService        string // ecs service self discovery
 }
 
 func newConfig(roleSessionName string) config {
@@ -66,5 +69,8 @@ func newConfig(roleSessionName string) config {
 		kubegroupDebug:                 env.Bool("KUBEGROUP_DEBUG", true),
 		kubegroupLabelSelector:         env.String("KUBEGROUP_LABEL_SELECTOR", "app=kubecache"),
 		kubegroupForceNamespaceDefault: env.Bool("KUBEGROUP_FORCE_NAMESPACE_DEFAULT", false),
+		compute:                        env.String("COMPUTE", "kubernetes"), // "ecs", "kubernetes"
+		forceSingleTask:                env.Bool("FORCE_SINGLE_TASK", false),
+		ecsTaskDiscoveryService:        env.String("ECS_TASK_DISCOVERY_SERVICE", "kubecache"), // ecs service self discovery
 	}
 }

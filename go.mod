@@ -1,14 +1,16 @@
 module github.com/udhos/kubecache
 
-go 1.23.5
+go 1.23.6
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.0
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.53.12
 	github.com/groupcache/groupcache-go/v3 v3.2.0
 	github.com/modernprogram/groupcache/v2 v2.6.9
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rs/zerolog v1.33.0
 	github.com/udhos/boilerplate v1.6.3
+	github.com/udhos/ecs-task-discovery v0.0.5
 	github.com/udhos/groupcache_exporter v1.0.8
 	github.com/udhos/kube v1.0.2
 	github.com/udhos/kubegroup v1.1.7
@@ -21,14 +23,14 @@ require (
 
 require (
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.34.0 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.36.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.8 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.29.2 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.55 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.16.0 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.25 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.29 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.29 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.31 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.31 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.2 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.29 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.39.6 // indirect

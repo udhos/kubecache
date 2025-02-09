@@ -7,8 +7,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/rs/zerolog/log"
+	"github.com/udhos/boilerplate/awsconfig"
+	"github.com/udhos/ecs-task-discovery/groupcachediscovery"
 	"github.com/udhos/groupcache_exporter"
 	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
 	"github.com/udhos/kube/kubeclient"
@@ -43,31 +46,69 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 		log.Error().Msgf("groupcache server: exited: %v", err)
 	}()
 
+	var stop func()
+
 	//
 	// start watcher for addresses of peers
 	//
 
-	clientsetOpt := kubeclient.Options{DebugLog: app.cfg.kubegroupDebug}
-	clientset, errClientset := kubeclient.New(clientsetOpt)
-	if errClientset != nil {
-		log.Fatal().Msgf("startGroupcache: kubeclient: %v", errClientset)
-	}
-
-	options := kubegroup.Options{
-		Client:                clientset,
-		LabelSelector:         app.cfg.kubegroupLabelSelector,
-		Pool:                  pool,
-		GroupCachePort:        app.cfg.groupcachePort,
-		MetricsRegisterer:     app.registry,
-		MetricsGatherer:       app.registry,
-		MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
-		Debug:                 app.cfg.kubegroupDebug,
-		ForceNamespaceDefault: forceNamespaceDefault,
-	}
-
-	kg, errKg := kubegroup.UpdatePeers(options)
-	if errKg != nil {
-		log.Fatal().Msgf("kubegroup error: %v", errKg)
+	if app.cfg.compute == "ecs" {
+		//
+		// compute: amazon ecs
+		//
+		awsCfg, errCfg := awsconfig.AwsConfig(awsconfig.Options{})
+		if errCfg != nil {
+			log.Fatal().Msgf("startGroupcache: could not get aws config: %v", errCfg)
+		}
+		clientEcs := ecs.NewFromConfig(awsCfg.AwsConfig)
+		discOptions := groupcachediscovery.Options{
+			Pool:           pool,
+			Client:         clientEcs,
+			GroupCachePort: app.cfg.groupcachePort,
+			ServiceName:    app.cfg.ecsTaskDiscoveryService, // self
+			// ForceSingleTask: see below
+		}
+		if app.cfg.forceSingleTask {
+			myAddr, errAddr := groupcachediscovery.FindMyAddr()
+			if errAddr != nil {
+				log.Fatal().Msgf("startGroupcache: groupcache my address: %v", errAddr)
+			}
+			discOptions.ForceSingleTask = myAddr
+		}
+		errDisc := groupcachediscovery.Run(discOptions)
+		if errDisc != nil {
+			log.Fatal().Msgf("startGroupcache: groupcache discovery error: %v", errDisc)
+		}
+		stop = func() {
+			log.Error().Msgf("FIXME WRITEME TODO XXXX startGroupcache: stop groupcachediscovery")
+		}
+	} else {
+		//
+		// compute: kubernetes
+		//
+		clientsetOpt := kubeclient.Options{DebugLog: app.cfg.kubegroupDebug}
+		clientset, errClientset := kubeclient.New(clientsetOpt)
+		if errClientset != nil {
+			log.Fatal().Msgf("startGroupcache: kubeclient: %v", errClientset)
+		}
+		options := kubegroup.Options{
+			Client:                clientset,
+			LabelSelector:         app.cfg.kubegroupLabelSelector,
+			Pool:                  pool,
+			GroupCachePort:        app.cfg.groupcachePort,
+			MetricsRegisterer:     app.registry,
+			MetricsGatherer:       app.registry,
+			MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
+			Debug:                 app.cfg.kubegroupDebug,
+			ForceNamespaceDefault: forceNamespaceDefault,
+		}
+		kg, errKg := kubegroup.UpdatePeers(options)
+		if errKg != nil {
+			log.Fatal().Msgf("kubegroup error: %v", errKg)
+		}
+		stop = func() {
+			kg.Close()
+		}
 	}
 
 	//
@@ -125,10 +166,6 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	namespace := ""
 	collector := groupcache_exporter.NewExporter(namespace, labels, g)
 	app.registry.MustRegister(collector)
-
-	stop := func() {
-		kg.Close()
-	}
 
 	return stop
 }

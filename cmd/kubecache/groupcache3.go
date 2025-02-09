@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/groupcache/groupcache-go/v3"
 	"github.com/groupcache/groupcache-go/v3/transport"
 	"github.com/rs/zerolog/log"
+	"github.com/udhos/boilerplate/awsconfig"
+	"github.com/udhos/ecs-task-discovery/groupcachediscovery"
 	"github.com/udhos/kube/kubeclient"
 	"github.com/udhos/kubegroup/kubegroup"
 )
@@ -38,27 +41,80 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 	// start watcher for addresses of peers
 	//
 
-	clientsetOpt := kubeclient.Options{DebugLog: app.cfg.kubegroupDebug}
-	clientset, errClientset := kubeclient.New(clientsetOpt)
-	if errClientset != nil {
-		log.Fatal().Msgf("kubeclient: %v", errClientset)
-	}
+	var stop func()
 
-	options := kubegroup.Options{
-		Client:                clientset,
-		LabelSelector:         app.cfg.kubegroupLabelSelector,
-		Peers:                 daemon,
-		GroupCachePort:        app.cfg.groupcachePort,
-		MetricsRegisterer:     app.registry,
-		MetricsGatherer:       app.registry,
-		MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
-		Debug:                 app.cfg.kubegroupDebug,
-		ForceNamespaceDefault: forceNamespaceDefault,
-	}
-
-	kg, errKg := kubegroup.UpdatePeers(options)
-	if errKg != nil {
-		log.Fatal().Msgf("kubegroup error: %v", errKg)
+	if app.cfg.compute == "ecs" {
+		//
+		// compute: amazon ecs
+		//
+		awsCfg, errCfg := awsconfig.AwsConfig(awsconfig.Options{})
+		if errCfg != nil {
+			log.Fatal().Msgf("startGroupcache3: could not get aws config: %v", errCfg)
+		}
+		clientEcs := ecs.NewFromConfig(awsCfg.AwsConfig)
+		discOptions := groupcachediscovery.Options{
+			Peers:          daemon,
+			Client:         clientEcs,
+			GroupCachePort: app.cfg.groupcachePort,
+			ServiceName:    app.cfg.ecsTaskDiscoveryService, // self
+			// ForceSingleTask: see below
+		}
+		if app.cfg.forceSingleTask {
+			myAddr, errAddr := groupcachediscovery.FindMyAddr()
+			if errAddr != nil {
+				log.Fatal().Msgf("startGroupcache3: groupcache my address: %v", errAddr)
+			}
+			discOptions.ForceSingleTask = myAddr
+		}
+		errDisc := groupcachediscovery.Run(discOptions)
+		if errDisc != nil {
+			log.Fatal().Msgf("startGroupcache3: groupcache discovery error: %v", errDisc)
+		}
+		stop = func() {
+			{
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				if err := daemon.Shutdown(ctx); err != nil {
+					log.Error().Msgf("groupcache3 daemon shutdown error: %v", err)
+				}
+			}
+			cancel()
+		}
+	} else {
+		//
+		// compute: kubernetes
+		//
+		clientsetOpt := kubeclient.Options{DebugLog: app.cfg.kubegroupDebug}
+		clientset, errClientset := kubeclient.New(clientsetOpt)
+		if errClientset != nil {
+			log.Fatal().Msgf("kubeclient: %v", errClientset)
+		}
+		options := kubegroup.Options{
+			Client:                clientset,
+			LabelSelector:         app.cfg.kubegroupLabelSelector,
+			Peers:                 daemon,
+			GroupCachePort:        app.cfg.groupcachePort,
+			MetricsRegisterer:     app.registry,
+			MetricsGatherer:       app.registry,
+			MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
+			Debug:                 app.cfg.kubegroupDebug,
+			ForceNamespaceDefault: forceNamespaceDefault,
+		}
+		kg, errKg := kubegroup.UpdatePeers(options)
+		if errKg != nil {
+			log.Fatal().Msgf("kubegroup error: %v", errKg)
+		}
+		stop = func() {
+			{
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				if err := daemon.Shutdown(ctx); err != nil {
+					log.Error().Msgf("groupcache3 daemon shutdown error: %v", err)
+				}
+			}
+			kg.Close()
+			cancel()
+		}
 	}
 
 	//
@@ -113,18 +169,6 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 		app.registry.MustRegister(collector)
 	*/
 	log.Error().Msgf("XXX TODO FIXME WRITEME groupcache3 expose prometheus metrics")
-
-	stop := func() {
-		{
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			if err := daemon.Shutdown(ctx); err != nil {
-				log.Error().Msgf("groupcache3 daemon shutdown error: %v", err)
-			}
-		}
-		kg.Close()
-		cancel()
-	}
 
 	return stop
 }
