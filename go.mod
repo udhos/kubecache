@@ -1,8 +1,6 @@
 module github.com/udhos/kubecache
 
-go 1.24rc3 // minimum
-
-toolchain go1.24.0 // preferred
+go 1.24.0 // minimum
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.0
@@ -12,7 +10,7 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rs/zerolog v1.33.0
 	github.com/udhos/boilerplate v1.6.3
-	github.com/udhos/ecs-task-discovery v0.0.6
+	github.com/udhos/ecs-task-discovery v0.0.7
 	github.com/udhos/groupcache_exporter v1.0.8
 	github.com/udhos/kube v1.0.2
 	github.com/udhos/kubegroup v1.1.9
@@ -130,8 +128,8 @@ require (
 	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250207221924-e9438ea467c6 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b // indirect
 	google.golang.org/grpc v1.70.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect

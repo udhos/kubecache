@@ -243,8 +243,8 @@ github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOf
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/udhos/boilerplate v1.6.3 h1:QUrWPAH0O+UQKB5k7inYg5LkoWfTnnCwsm0zGiHRCLg=
 github.com/udhos/boilerplate v1.6.3/go.mod h1:qP62Zl+evffxipxn9aLJusOs+2w+gRAxMHob/SymwXc=
-github.com/udhos/ecs-task-discovery v0.0.6 h1:XhDhUS29NogiOABvGz5eYFQttRumS4N3hmBj6GL/foI=
-github.com/udhos/ecs-task-discovery v0.0.6/go.mod h1:rpu2hOWZQxkc7u23nfyMO95ludN+2mKjK05Kc6N6FfA=
+github.com/udhos/ecs-task-discovery v0.0.7 h1:6dsyav+2EnQq1lXDebX9EMO2KGfKc1FznZ12CxWRecE=
+github.com/udhos/ecs-task-discovery v0.0.7/go.mod h1:Fi7YwHvjJcLpZvEAuqzPCu2lwCGXSMb+CnCUBKNS/JY=
 github.com/udhos/groupcache_exporter v1.0.8 h1:ky0710psh+492+HmQX3y1rHgCSkBSXu0qgwqQc5JbYg=
 github.com/udhos/groupcache_exporter v1.0.8/go.mod h1:J0JGD7MD+wkVWSA6ez3612LgZeGkjeQhOavH0ldpm24=
 github.com/udhos/kube v1.0.2 h1:HU5v8aGg5UH348ivom1r6eaf2wQ7YMLVfOmF6W45y9Y=
@@ -351,10 +351,10 @@ golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8T
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
-google.golang.org/genproto/googleapis/api v0.0.0-20250207221924-e9438ea467c6 h1:L9JNMl/plZH9wmzQUHleO/ZZDSN+9Gh41wPczNy+5Fk=
-google.golang.org/genproto/googleapis/api v0.0.0-20250207221924-e9438ea467c6/go.mod h1:iYONQfRdizDB8JJBybql13nArx91jcUk7zCXEsOofM4=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6 h1:2duwAxN2+k0xLNpjnHTXoMUgnv6VPSp5fiqTuwSxjmI=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250207221924-e9438ea467c6/go.mod h1:8BS3B93F/U1juMFq9+EDk+qOT5CO1R9IzXxG3PTqiRk=
+google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b h1:i+d0RZa8Hs2L/MuaOQYI+krthcxdEbEM2N+Tf3kJ4zk=
+google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b/go.mod h1:iYONQfRdizDB8JJBybql13nArx91jcUk7zCXEsOofM4=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b h1:FQtJ1MxbXoIIrZHZ33M+w5+dAP9o86rgpjoKr/ZmT7k=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b/go.mod h1:8BS3B93F/U1juMFq9+EDk+qOT5CO1R9IzXxG3PTqiRk=
 google.golang.org/grpc v1.70.0 h1:pWFv03aZoHzlRKHWicjsZytKAiYCtNS0dHbXnIdq7jQ=
 google.golang.org/grpc v1.70.0/go.mod h1:ofIJqVKDXx/JiXrwr2IG4/zwdH9txy3IlF40RmcJSQw=
 google.golang.org/protobuf v1.36.5 h1:tPhr+woSbjfYvY6/GPufUoYizxw1cF/yFoxJ2fmpwlM=
