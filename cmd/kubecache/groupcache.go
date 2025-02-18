@@ -48,6 +48,8 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 
 	var stop func()
 
+	metricsNamespace := app.cfg.metricsNamespace
+
 	//
 	// start watcher for addresses of peers
 	//
@@ -67,6 +69,8 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 			GroupCachePort: app.cfg.groupcachePort,
 			ServiceName:    app.cfg.ecsTaskDiscoveryService, // self
 			// ForceSingleTask: see below
+			MetricsRegisterer: app.registry,
+			MetricsNamespace:  metricsNamespace,
 		}
 		if app.cfg.forceSingleTask {
 			myAddr, errAddr := groupcachediscovery.FindMyAddr()
@@ -163,8 +167,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 
 	g := modernprogram.New(app.cache)
 	labels := map[string]string{}
-	namespace := ""
-	collector := groupcache_exporter.NewExporter(namespace, labels, g)
+	collector := groupcache_exporter.NewExporter(metricsNamespace, labels, g)
 	app.registry.MustRegister(collector)
 
 	return stop

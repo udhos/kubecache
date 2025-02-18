@@ -8,6 +8,7 @@ export RESTRICT_ROUTE_REGEXP='[]'             ;# *empty* list means match *anyth
 export CACHE_TTL=60s                          ;# default: 300s
 export TRACE=false
 #export COMPUTE=ecs
+#export FORCE_SINGLE_TASK=true
 
 kubecache
 
