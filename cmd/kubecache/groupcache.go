@@ -79,12 +79,12 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 			}
 			discOptions.ForceSingleTask = myAddr
 		}
-		errDisc := groupcachediscovery.Run(discOptions)
+		disc, errDisc := groupcachediscovery.New(discOptions)
 		if errDisc != nil {
 			log.Fatal().Msgf("startGroupcache: groupcache discovery error: %v", errDisc)
 		}
 		stop = func() {
-			log.Error().Msgf("FIXME WRITEME TODO XXXX startGroupcache: stop groupcachediscovery")
+			disc.Stop()
 		}
 	} else {
 		//

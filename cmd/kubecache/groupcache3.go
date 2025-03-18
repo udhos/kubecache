@@ -66,11 +66,12 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 			}
 			discOptions.ForceSingleTask = myAddr
 		}
-		errDisc := groupcachediscovery.Run(discOptions)
+		disc, errDisc := groupcachediscovery.New(discOptions)
 		if errDisc != nil {
 			log.Fatal().Msgf("startGroupcache3: groupcache discovery error: %v", errDisc)
 		}
 		stop = func() {
+			disc.Stop()
 			{
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
