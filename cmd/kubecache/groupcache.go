@@ -120,7 +120,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	//
 
 	getter := groupcache.GetterFunc(
-		func(c context.Context, key string, dest groupcache.Sink) error {
+		func(c context.Context, key string, dest groupcache.Sink, _ *groupcache.Info) error {
 
 			const me = "groupcache.getter"
 			ctx, span := app.tracer.Start(c, me)

@@ -336,7 +336,7 @@ func (app *application) query(c context.Context, key, _ /*reqIP*/ string, useCac
 			//
 			// groupcache 2
 			//
-			if errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data)); errGet != nil {
+			if errGet := app.cache.Get(ctx, key, groupcache.AllocatingByteSliceSink(&data), nil); errGet != nil {
 				log.Error().Msgf("key='%s' cache error:%v", key, errGet)
 				resp.Status = 500
 				return resp, errGet
