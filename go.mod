@@ -10,10 +10,10 @@ require (
 	github.com/prometheus/client_golang v1.22.0
 	github.com/rs/zerolog v1.34.0
 	github.com/udhos/boilerplate v1.6.8
-	github.com/udhos/ecs-task-discovery v1.0.0
-	github.com/udhos/groupcache_exporter v1.1.0
+	github.com/udhos/ecs-task-discovery v1.0.2
+	github.com/udhos/groupcache_exporter v1.1.1
 	github.com/udhos/kube v1.0.4
-	github.com/udhos/kubegroup v1.1.10
+	github.com/udhos/kubegroup v1.1.11
 	github.com/udhos/otelconfig v1.0.4
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0
 	go.opentelemetry.io/otel v1.35.0
@@ -27,13 +27,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.10 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.29.13 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.66 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.18.9 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.18.10 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.30 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.34 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.34 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.3 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.34 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.42.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.42.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.25.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.7.0 // indirect
@@ -126,7 +126,7 @@ require (
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250407143221-ac9807e6c755 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250409194420-de1ac958c67a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250407143221-ac9807e6c755 // indirect
 	google.golang.org/grpc v1.71.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
