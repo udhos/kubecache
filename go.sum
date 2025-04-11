@@ -252,8 +252,12 @@ github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOf
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/udhos/boilerplate v1.6.8 h1:RQkeQESRBBEzJuQfqxMe7yLc6PwPPc8MLa7vja63pMU=
 github.com/udhos/boilerplate v1.6.8/go.mod h1:avdJCCaANfoPUh7jC+vhumMZJghBg9FPr/JMyhmezCE=
+github.com/udhos/dogstatsdclient v0.0.2 h1:t1wVeB0IHURkS04WulyxG4I5yRZ8Za/VMhyT7gNJxaQ=
+github.com/udhos/dogstatsdclient v0.0.2/go.mod h1:SGlnVGLUAMdf+MeXX3XbGvTu9L/vbPL+An87SeXCgbs=
 github.com/udhos/ecs-task-discovery v1.0.3 h1:taY7tYB6BXHZnt6BDt/HLXsgiZMd43uRcKBgQAk93gk=
 github.com/udhos/ecs-task-discovery v1.0.3/go.mod h1:Nq2pKX0+/IJF5lId9YGk+7TcIJ9qgl7bw7IFOPDC0Bo=
+github.com/udhos/groupcache_datadog v0.0.6 h1:pAm6i/k3Jc1993/6xEILAXn6x1G9M0SfvEGb5dsaOyU=
+github.com/udhos/groupcache_datadog v0.0.6/go.mod h1:wajO+SCiwbBUGpjDrOZd2G5pn+2mheudPto+oWlZ/Z4=
 github.com/udhos/groupcache_exporter v1.1.2 h1:1lDCJlUz4Tfk89/U4hdbxw/oqvgvRzDa3koBz1kZuw8=
 github.com/udhos/groupcache_exporter v1.1.2/go.mod h1:EIlUX181r82N458rPynEAj5VFHz8WQb/dbDEr1YxTg0=
 github.com/udhos/kube v1.0.4 h1:K29UtnX5p+AjA8RcPfB3Y3hyHSlbJJp8af94yNq+0lw=

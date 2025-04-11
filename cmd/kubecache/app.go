@@ -11,11 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/groupcache/groupcache-go/v3/transport"
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/rs/zerolog/log"
+	"github.com/udhos/dogstatsdclient/dogstatsdclient"
 	"github.com/udhos/otelconfig/oteltrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
@@ -27,6 +29,7 @@ type application struct {
 	tracer              trace.Tracer
 	registry            *prometheus.Registry
 	metrics             *prometheusMetrics
+	dogstatsdClient     *statsd.Client
 	serverMain          *http.Server
 	serverHealth        *http.Server
 	serverMetrics       *http.Server
@@ -63,6 +66,18 @@ func newApplication(me string) *application {
 
 	if app.cfg.prometheusEnable {
 		app.registry = prometheus.NewRegistry()
+	}
+
+	if app.cfg.dogstatsdEnable {
+		client, errClient := dogstatsdclient.New(dogstatsdclient.Options{
+			Namespace: "",
+			Service:   "kubecache",
+			Debug:     true,
+		})
+		if errClient != nil {
+			log.Fatal().Msgf("Dogstatsd client error: %v", errClient)
+		}
+		app.dogstatsdClient = client
 	}
 
 	initApplication(app, app.cfg.kubegroupForceNamespaceDefault)

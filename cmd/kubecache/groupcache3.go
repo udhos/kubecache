@@ -53,10 +53,11 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 		}
 		clientEcs := ecs.NewFromConfig(awsCfg.AwsConfig)
 		discOptions := groupcachediscovery.Options{
-			Peers:          daemon,
-			Client:         clientEcs,
-			GroupCachePort: app.cfg.groupcachePort,
-			ServiceName:    app.cfg.ecsTaskDiscoveryService, // self
+			Peers:           daemon,
+			Client:          clientEcs,
+			GroupCachePort:  app.cfg.groupcachePort,
+			ServiceName:     app.cfg.ecsTaskDiscoveryService, // self
+			DogstatsdClient: app.dogstatsdClient,
 			// ForceSingleTask: see below
 		}
 		if app.cfg.forceSingleTask {
@@ -100,6 +101,7 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 			MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
 			Debug:                 app.cfg.kubegroupDebug,
 			ForceNamespaceDefault: forceNamespaceDefault,
+			DogstatsdClient:       app.dogstatsdClient,
 		}
 		kg, errKg := kubegroup.UpdatePeers(options)
 		if errKg != nil {

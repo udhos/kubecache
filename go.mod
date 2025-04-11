@@ -3,6 +3,7 @@ module github.com/udhos/kubecache
 go 1.24.2 // minimum
 
 require (
+	github.com/DataDog/datadog-go/v5 v5.6.0
 	github.com/KimMachineGun/automemlimit v0.7.1
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.54.6
 	github.com/groupcache/groupcache-go/v3 v3.2.0
@@ -10,7 +11,9 @@ require (
 	github.com/prometheus/client_golang v1.22.0
 	github.com/rs/zerolog v1.34.0
 	github.com/udhos/boilerplate v1.6.8
+	github.com/udhos/dogstatsdclient v0.0.2
 	github.com/udhos/ecs-task-discovery v1.0.3
+	github.com/udhos/groupcache_datadog v0.0.6
 	github.com/udhos/groupcache_exporter v1.1.2
 	github.com/udhos/kube v1.0.4
 	github.com/udhos/kubegroup v1.2.2
@@ -22,7 +25,6 @@ require (
 )
 
 require (
-	github.com/DataDog/datadog-go/v5 v5.6.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.36.3 // indirect

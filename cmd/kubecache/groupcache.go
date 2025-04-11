@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/ecs-task-discovery/groupcachediscovery"
+	"github.com/udhos/groupcache_datadog/exporter"
 	"github.com/udhos/groupcache_exporter"
 	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
 	"github.com/udhos/kube/kubeclient"
@@ -71,6 +72,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 			// ForceSingleTask: see below
 			// MetricsRegisterer: see below
 			MetricsNamespace: metricsNamespace,
+			DogstatsdClient:  app.dogstatsdClient,
 		}
 		if app.cfg.prometheusEnable {
 			discOptions.MetricsRegisterer = app.registry
@@ -106,6 +108,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 			MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
 			Debug:                 app.cfg.kubegroupDebug,
 			ForceNamespaceDefault: forceNamespaceDefault,
+			DogstatsdClient:       app.dogstatsdClient,
 			//MetricsRegisterer:   see below
 			//MetricsGatherer:     see below
 		}
@@ -169,21 +172,33 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	// 64 MB max per-node memory usage
 	app.cache = groupcache.NewGroupWithWorkspace(groupcacheOptions)
 
+	extract := modernprogram.New(app.cache) // extract metrics from groupcache group
+
 	unregister := func() {}
 
-	//
-	// expose prometheus metrics for groupcache
-	//
 	if app.cfg.prometheusEnable {
-		g := modernprogram.New(app.cache)
+		log.Info().Msgf("starting groupcache metrics exporter for Prometheus")
 		labels := map[string]string{}
-		collector := groupcache_exporter.NewExporter(metricsNamespace, labels, g)
+		collector := groupcache_exporter.NewExporter(metricsNamespace, labels, extract)
 		app.registry.MustRegister(collector)
 		unregister = func() { app.registry.Unregister(collector) }
+	}
+
+	closeExporterDogstatsd := func() {}
+
+	if app.cfg.dogstatsdEnable {
+		log.Info().Msgf("starting groupcache metrics exporter for Dogstatsd")
+		exporter := exporter.New(exporter.Options{
+			Client:         app.dogstatsdClient,
+			Groups:         []groupcache_exporter.GroupStatistics{extract},
+			ExportInterval: app.cfg.dogstatsdExportInterval,
+		})
+		closeExporterDogstatsd = func() { exporter.Close() }
 	}
 
 	return func() {
 		stopDisc()
 		unregister()
+		closeExporterDogstatsd()
 	}
 }
