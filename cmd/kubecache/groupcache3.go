@@ -41,7 +41,7 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 	// start watcher for addresses of peers
 	//
 
-	var stop func()
+	var stopDisc func()
 
 	if app.cfg.compute == "ecs" {
 		//
@@ -70,7 +70,7 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 		if errDisc != nil {
 			log.Fatal().Msgf("startGroupcache3: groupcache discovery error: %v", errDisc)
 		}
-		stop = func() {
+		stopDisc = func() {
 			disc.Stop()
 			{
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -105,7 +105,7 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 		if errKg != nil {
 			log.Fatal().Msgf("kubegroup error: %v", errKg)
 		}
-		stop = func() {
+		stopDisc = func() {
 			{
 				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer cancel()
@@ -171,5 +171,5 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 	*/
 	log.Error().Msgf("XXX TODO FIXME WRITEME groupcache3 expose prometheus metrics")
 
-	return stop
+	return stopDisc
 }

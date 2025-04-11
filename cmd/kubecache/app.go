@@ -14,6 +14,7 @@ import (
 	"github.com/groupcache/groupcache-go/v3/transport"
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/otelconfig/oteltrace"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -56,9 +57,12 @@ func (app *application) stop() {
 
 func newApplication(me string) *application {
 	app := &application{
-		registry: prometheus.NewRegistry(),
-		cfg:      newConfig(me),
-		tracer:   oteltrace.NewNoopTracer(),
+		cfg:    newConfig(me),
+		tracer: oteltrace.NewNoopTracer(),
+	}
+
+	if app.cfg.prometheusEnable {
+		app.registry = prometheus.NewRegistry()
 	}
 
 	initApplication(app, app.cfg.kubegroupForceNamespaceDefault)
@@ -106,14 +110,16 @@ func initApplication(app *application, forceNamespaceDefault bool) {
 		Timeout:   app.cfg.backendTimeout,
 	}
 
-	//
-	// add basic/default instrumentation
-	//
-	app.registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
-	app.registry.MustRegister(prometheus.NewGoCollector())
+	if app.cfg.prometheusEnable {
+		//
+		// add basic/default Prometheus instrumentation
+		//
+		app.registry.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+		app.registry.MustRegister(collectors.NewGoCollector())
 
-	app.metrics = newMetrics(app.registry, app.cfg.metricsNamespace,
-		app.cfg.metricsBucketsLatencyHTTP)
+		app.metrics = newMetrics(app.registry, app.cfg.metricsNamespace,
+			app.cfg.metricsBucketsLatencyHTTP)
+	}
 
 	//
 	// start group cache
@@ -231,9 +237,11 @@ func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	elap := time.Since(begin)
 
-	outcome := outcomeFrom(resp.Status, isFetchError)
+	if app.cfg.prometheusEnable {
+		outcome := outcomeFrom(resp.Status, isFetchError)
 
-	app.metrics.recordLatency(r.Method, strconv.Itoa(resp.Status), uri, outcome, elap)
+		app.metrics.recordLatency(r.Method, strconv.Itoa(resp.Status), uri, outcome, elap)
+	}
 
 	//
 	// log query status

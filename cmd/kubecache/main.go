@@ -111,10 +111,10 @@ func main() {
 	}
 
 	//
-	// start metrics server
+	// start metrics server for Prometheus
 	//
 
-	{
+	if app.cfg.prometheusEnable {
 		log.Info().Msgf("registering metrics route: %s %s",
 			app.cfg.metricsAddr, app.cfg.metricsPath)
 

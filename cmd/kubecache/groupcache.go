@@ -46,7 +46,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 		log.Error().Msgf("groupcache server: exited: %v", err)
 	}()
 
-	var stop func()
+	var stopDisc func()
 
 	metricsNamespace := app.cfg.metricsNamespace
 
@@ -69,8 +69,11 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 			GroupCachePort: app.cfg.groupcachePort,
 			ServiceName:    app.cfg.ecsTaskDiscoveryService, // self
 			// ForceSingleTask: see below
-			MetricsRegisterer: app.registry,
-			MetricsNamespace:  metricsNamespace,
+			// MetricsRegisterer: see below
+			MetricsNamespace: metricsNamespace,
+		}
+		if app.cfg.prometheusEnable {
+			discOptions.MetricsRegisterer = app.registry
 		}
 		if app.cfg.forceSingleTask {
 			myAddr, errAddr := groupcachediscovery.FindMyAddr()
@@ -83,7 +86,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 		if errDisc != nil {
 			log.Fatal().Msgf("startGroupcache: groupcache discovery error: %v", errDisc)
 		}
-		stop = func() {
+		stopDisc = func() {
 			disc.Stop()
 		}
 	} else {
@@ -100,17 +103,21 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 			LabelSelector:         app.cfg.kubegroupLabelSelector,
 			Pool:                  pool,
 			GroupCachePort:        app.cfg.groupcachePort,
-			MetricsRegisterer:     app.registry,
-			MetricsGatherer:       app.registry,
 			MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
 			Debug:                 app.cfg.kubegroupDebug,
 			ForceNamespaceDefault: forceNamespaceDefault,
+			//MetricsRegisterer:   see below
+			//MetricsGatherer:     see below
+		}
+		if app.cfg.prometheusEnable {
+			options.MetricsRegisterer = app.registry
+			options.MetricsGatherer = app.registry
 		}
 		kg, errKg := kubegroup.UpdatePeers(options)
 		if errKg != nil {
 			log.Fatal().Msgf("kubegroup error: %v", errKg)
 		}
-		stop = func() {
+		stopDisc = func() {
 			kg.Close()
 		}
 	}
@@ -162,14 +169,21 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	// 64 MB max per-node memory usage
 	app.cache = groupcache.NewGroupWithWorkspace(groupcacheOptions)
 
+	unregister := func() {}
+
 	//
 	// expose prometheus metrics for groupcache
 	//
+	if app.cfg.prometheusEnable {
+		g := modernprogram.New(app.cache)
+		labels := map[string]string{}
+		collector := groupcache_exporter.NewExporter(metricsNamespace, labels, g)
+		app.registry.MustRegister(collector)
+		unregister = func() { app.registry.Unregister(collector) }
+	}
 
-	g := modernprogram.New(app.cache)
-	labels := map[string]string{}
-	collector := groupcache_exporter.NewExporter(metricsNamespace, labels, g)
-	app.registry.MustRegister(collector)
-
-	return stop
+	return func() {
+		stopDisc()
+		unregister()
+	}
 }

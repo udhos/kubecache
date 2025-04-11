@@ -9,6 +9,8 @@ export CACHE_TTL=60s                          ;# default: 300s
 export TRACE=false
 #export COMPUTE=ecs
 #export FORCE_SINGLE_TASK=true
+#export PROMETHEUS_ENABLE=false
+#export DOGSTATSD_ENABLE=false
 
 kubecache
 

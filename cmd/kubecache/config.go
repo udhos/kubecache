@@ -22,6 +22,8 @@ type config struct {
 	metricsPath                           string
 	metricsNamespace                      string
 	metricsBucketsLatencyHTTP             []float64
+	prometheusEnable                      bool
+	dogstatsdEnable                       bool
 	groupcacheVersion                     int
 	groupcachePort                        string
 	groupcacheSizeBytes                   int64
@@ -62,6 +64,8 @@ func newConfig(roleSessionName string) config {
 		metricsNamespace: env.String("METRICS_NAMESPACE", ""),
 		metricsBucketsLatencyHTTP: env.Float64Slice("METRICS_BUCKETS_LATENCY_HTTP",
 			[]float64{0.00001, 0.000025, 0.00005, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5, 10, 25, 50, 100, 250, 500, 1000}),
+		prometheusEnable:                      env.Bool("PROMETHEUS_ENABLE", true),
+		dogstatsdEnable:                       env.Bool("DOGSTATSD_ENABLE", true),
 		groupcacheVersion:                     env.Int("GROUPCACHE_VERSION", 3),
 		groupcachePort:                        env.String("GROUPCACHE_PORT", ":5000"),
 		groupcacheSizeBytes:                   env.Int64("GROUPCACHE_SIZE_BYTES", 100_000_000),
