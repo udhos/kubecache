@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DataDog/datadog-go/v5/statsd"
 	"github.com/groupcache/groupcache-go/v3/transport"
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,7 +28,7 @@ type application struct {
 	tracer              trace.Tracer
 	registry            *prometheus.Registry
 	metrics             *prometheusMetrics
-	dogstatsdClient     *statsd.Client
+	dogstatsdClient     *dogstatsdclient.Client
 	serverMain          *http.Server
 	serverHealth        *http.Server
 	serverMetrics       *http.Server
@@ -72,7 +71,8 @@ func newApplication(me string) *application {
 		client, errClient := dogstatsdclient.New(dogstatsdclient.Options{
 			Namespace: "",
 			Service:   "kubecache",
-			Debug:     true,
+			Debug:     app.cfg.dogstatsdDebug,
+			TTL:       app.cfg.dogstatsdClientTTL,
 		})
 		if errClient != nil {
 			log.Fatal().Msgf("Dogstatsd client error: %v", errClient)

@@ -25,6 +25,8 @@ type config struct {
 	prometheusEnable                      bool
 	dogstatsdEnable                       bool
 	dogstatsdExportInterval               time.Duration
+	dogstatsdDebug                        bool
+	dogstatsdClientTTL                    time.Duration
 	groupcacheVersion                     int
 	groupcachePort                        string
 	groupcacheSizeBytes                   int64
@@ -68,6 +70,8 @@ func newConfig(roleSessionName string) config {
 		prometheusEnable:                      env.Bool("PROMETHEUS_ENABLE", true),
 		dogstatsdEnable:                       env.Bool("DOGSTATSD_ENABLE", true),
 		dogstatsdExportInterval:               env.Duration("DOGSTATSD_EXPORT_INTERVAL", 30*time.Second),
+		dogstatsdDebug:                        env.Bool("DOGSTATSD_DEBUG", false),
+		dogstatsdClientTTL:                    env.Duration("DOGSTATSD_CLIENT_TTL", time.Minute),
 		groupcacheVersion:                     env.Int("GROUPCACHE_VERSION", 3),
 		groupcachePort:                        env.String("GROUPCACHE_PORT", ":5000"),
 		groupcacheSizeBytes:                   env.Int64("GROUPCACHE_SIZE_BYTES", 100_000_000),
