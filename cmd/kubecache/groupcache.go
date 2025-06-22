@@ -7,17 +7,27 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/modernprogram/groupcache/v2"
 	"github.com/rs/zerolog/log"
 	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/ecs-task-discovery/groupcachediscovery"
+	emfexporter "github.com/udhos/groupcache_awsemf/exporter"
 	"github.com/udhos/groupcache_datadog/exporter"
 	"github.com/udhos/groupcache_exporter"
 	"github.com/udhos/groupcache_exporter/groupcache/modernprogram"
 	"github.com/udhos/kube/kubeclient"
 	"github.com/udhos/kubegroup/kubegroup"
 )
+
+func getAwsConfig() aws.Config {
+	awsCfg, errCfg := awsconfig.AwsConfig(awsconfig.Options{})
+	if errCfg != nil {
+		log.Fatal().Msgf("getAwsConfig: could not get aws config: %v", errCfg)
+	}
+	return awsCfg.AwsConfig
+}
 
 func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 
@@ -59,11 +69,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 		//
 		// compute: amazon ecs
 		//
-		awsCfg, errCfg := awsconfig.AwsConfig(awsconfig.Options{})
-		if errCfg != nil {
-			log.Fatal().Msgf("startGroupcache: could not get aws config: %v", errCfg)
-		}
-		clientEcs := ecs.NewFromConfig(awsCfg.AwsConfig)
+		clientEcs := ecs.NewFromConfig(getAwsConfig())
 		discOptions := groupcachediscovery.Options{
 			Pool:           pool,
 			Client:         clientEcs,
@@ -114,7 +120,6 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 		}
 		if app.cfg.prometheusEnable {
 			options.MetricsRegisterer = app.registry
-			options.MetricsGatherer = app.registry
 		}
 		kg, errKg := kubegroup.UpdatePeers(options)
 		if errKg != nil {
@@ -200,9 +205,38 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 		closeExporterDogstatsd = func() { exporter.Close() }
 	}
 
+	closeEmf := func() {}
+
+	if app.cfg.emfEnable {
+		log.Info().Msgf("starting groupcache metrics exporter for AWS CloudWatch EMF")
+
+		opt := emfexporter.Options{
+			Application:    "kubecache",
+			ListGroups:     listGroups,
+			ExportInterval: 20 * time.Second,
+		}
+
+		if app.cfg.emfSendLogs {
+			//
+			// send EMF directly to aws cloudwatch logs
+			//
+			log.Info().Msgf("starting groupcache metrics exporter for AWS CloudWatch EMF - send directly to cloudwatch logs")
+			awsConfig := getAwsConfig()
+			opt.AwsConfig = &awsConfig
+		}
+
+		exporter, errExport := emfexporter.New(opt)
+		if errExport != nil {
+			log.Fatal().Msgf("emf exporter error: %v", errExport)
+		}
+
+		closeEmf = func() { exporter.Close() }
+	}
+
 	return func() {
 		stopDisc()
 		unregister()
 		closeExporterDogstatsd()
+		closeEmf()
 	}
 }
