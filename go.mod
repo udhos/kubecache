@@ -14,7 +14,7 @@ require (
 	github.com/udhos/dogstatsdclient v0.1.0
 	github.com/udhos/ecs-task-discovery v1.0.6
 	github.com/udhos/groupcache_awsemf v0.0.4
-	github.com/udhos/groupcache_datadog v1.0.0
+	github.com/udhos/groupcache_datadog v1.0.1
 	github.com/udhos/groupcache_exporter v1.3.3
 	github.com/udhos/kube v1.0.5
 	github.com/udhos/kubegroup v1.3.1

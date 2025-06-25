@@ -265,8 +265,8 @@ github.com/udhos/ecs-task-discovery v1.0.6 h1:domSD1iivr+UwBq6zwYWR1BloZ8afJ7QQl
 github.com/udhos/ecs-task-discovery v1.0.6/go.mod h1:zA+3XcHf7mcXHXArpBFX28CwxT26uBSOet7IOPANlQo=
 github.com/udhos/groupcache_awsemf v0.0.4 h1:PnAridfVDIK/kFqgG7Y8Lfq7lBPTn5hsMhaA7bea9KY=
 github.com/udhos/groupcache_awsemf v0.0.4/go.mod h1:N/i2iHZ5P5W+Iqj3kLTBZFcDHdWvgAHA3rA+w9fZGQw=
-github.com/udhos/groupcache_datadog v1.0.0 h1:vsKwxnvHlNmtBLQJOHShRQ5Iy46UM24KCw8jEHMUkB8=
-github.com/udhos/groupcache_datadog v1.0.0/go.mod h1:y+skxsTw/sG2r1fc0ApnPWIocn/gRr/VD+m0dJnwDfQ=
+github.com/udhos/groupcache_datadog v1.0.1 h1:PM6ueIPMYqX+MU0phxhF8bq1BuzdYMyWnaO/vKSo9yU=
+github.com/udhos/groupcache_datadog v1.0.1/go.mod h1:Io0R2SJV8oVA9I8KXGlUM+3pObR/dj69oyv4HLEuy/8=
 github.com/udhos/groupcache_exporter v1.3.3 h1:0+f7Y+X5HahJMXQg4uPoD1xjm19FVaS0wqoDaGC4HyY=
 github.com/udhos/groupcache_exporter v1.3.3/go.mod h1:BBEtq7/iaWBRRlrM8PtIC96kmYfd8iDxvljWR0L9cfI=
 github.com/udhos/kube v1.0.5 h1:DBnnm4X0qVqEsygYz9pDW+HwphZf1YYKyyYMsuWT91I=
