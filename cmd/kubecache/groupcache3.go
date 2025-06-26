@@ -10,7 +10,6 @@ import (
 	"github.com/groupcache/groupcache-go/v3"
 	"github.com/groupcache/groupcache-go/v3/transport"
 	"github.com/rs/zerolog/log"
-	"github.com/udhos/boilerplate/awsconfig"
 	"github.com/udhos/ecs-task-discovery/groupcachediscovery"
 	"github.com/udhos/kube/kubeclient"
 	"github.com/udhos/kubegroup/kubegroup"
@@ -47,11 +46,7 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 		//
 		// compute: amazon ecs
 		//
-		awsCfg, errCfg := awsconfig.AwsConfig(awsconfig.Options{})
-		if errCfg != nil {
-			log.Fatal().Msgf("startGroupcache3: could not get aws config: %v", errCfg)
-		}
-		clientEcs := ecs.NewFromConfig(awsCfg.AwsConfig)
+		clientEcs := ecs.NewFromConfig(getAwsConfig())
 		discOptions := groupcachediscovery.Options{
 			Peers:           daemon,
 			Client:          clientEcs,
@@ -97,7 +92,6 @@ func startGroupcache3(app *application, forceNamespaceDefault bool) func() {
 			Peers:                 daemon,
 			GroupCachePort:        app.cfg.groupcachePort,
 			MetricsRegisterer:     app.registry,
-			MetricsGatherer:       app.registry,
 			MetricsNamespace:      app.cfg.kubegroupMetricsNamespace,
 			Debug:                 app.cfg.kubegroupDebug,
 			ForceNamespaceDefault: forceNamespaceDefault,

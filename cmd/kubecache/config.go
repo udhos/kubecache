@@ -22,6 +22,8 @@ type config struct {
 	metricsPath                           string
 	metricsNamespace                      string
 	metricsBucketsLatencyHTTP             []float64
+	emfSendLogs                           bool
+	emfEnable                             bool
 	prometheusEnable                      bool
 	dogstatsdEnable                       bool
 	dogstatsdExportInterval               time.Duration
@@ -67,12 +69,14 @@ func newConfig(roleSessionName string) config {
 		metricsNamespace: env.String("METRICS_NAMESPACE", ""),
 		metricsBucketsLatencyHTTP: env.Float64Slice("METRICS_BUCKETS_LATENCY_HTTP",
 			[]float64{0.00001, 0.000025, 0.00005, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5, 10, 25, 50, 100, 250, 500, 1000}),
+		emfSendLogs:                           env.Bool("EMF_SEND_LOGS", false),
+		emfEnable:                             env.Bool("EMF_ENABLE", false),
 		prometheusEnable:                      env.Bool("PROMETHEUS_ENABLE", true),
 		dogstatsdEnable:                       env.Bool("DOGSTATSD_ENABLE", true),
 		dogstatsdExportInterval:               env.Duration("DOGSTATSD_EXPORT_INTERVAL", 30*time.Second),
 		dogstatsdDebug:                        env.Bool("DOGSTATSD_DEBUG", false),
 		dogstatsdClientTTL:                    env.Duration("DOGSTATSD_CLIENT_TTL", time.Minute),
-		groupcacheVersion:                     env.Int("GROUPCACHE_VERSION", 3),
+		groupcacheVersion:                     env.Int("GROUPCACHE_VERSION", 2),
 		groupcachePort:                        env.String("GROUPCACHE_PORT", ":5000"),
 		groupcacheSizeBytes:                   env.Int64("GROUPCACHE_SIZE_BYTES", 100_000_000),
 		groupcacheDisablePurgeExpired:         env.Bool("GROUPCACHE_DISABLE_PURGE_EXPIRED", false),

@@ -11,6 +11,7 @@ export TRACE=false
 #export FORCE_SINGLE_TASK=true
 #export PROMETHEUS_ENABLE=false
 #export DOGSTATSD_ENABLE=false
+#export EMF_ENABLE=true
 
 kubecache
 
