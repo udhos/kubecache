@@ -12,7 +12,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/udhos/boilerplate v1.6.10
 	github.com/udhos/dogstatsdclient v0.1.0
-	github.com/udhos/ecs-task-discovery v1.1.0
+	github.com/udhos/ecs-task-discovery v1.1.1
 	github.com/udhos/groupcache_awsemf v0.0.5
 	github.com/udhos/groupcache_datadog v1.0.2
 	github.com/udhos/groupcache_exporter v1.3.4

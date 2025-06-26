@@ -261,8 +261,8 @@ github.com/udhos/cloudwatchlog v0.0.3 h1:ekeBdguBhL+TpxbRPQyDdsGVWGO9Ci+VJgqUFhd
 github.com/udhos/cloudwatchlog v0.0.3/go.mod h1:jGD85iQ5vh3v6z9htWrFgF+ueGQDRShYAz1l5PIQSsI=
 github.com/udhos/dogstatsdclient v0.1.0 h1:HgPUtUP0Up9rqp0sSfij7e0IQ30XmsH8kQLwvmJeqhM=
 github.com/udhos/dogstatsdclient v0.1.0/go.mod h1:30rpBaB5a76UgYGqqxSbYPOP93M9yG1eVAQKycqNb4I=
-github.com/udhos/ecs-task-discovery v1.1.0 h1:ZQxoBIX7Mc/U8miTEK0nESTDvPdS+7EUvvanDCimWbo=
-github.com/udhos/ecs-task-discovery v1.1.0/go.mod h1:fsq1iMD0440CXICiykDvjdDFpU1OFNfgr5acjU4Wxds=
+github.com/udhos/ecs-task-discovery v1.1.1 h1:TZGJHUI/uQVWSTj49kEuf1ELSwOfa5dRWq70pbviZpc=
+github.com/udhos/ecs-task-discovery v1.1.1/go.mod h1:buw97vhHYm3zM+ndq/i9CX0jwKhba6xz/Wp5VHTuiyw=
 github.com/udhos/groupcache_awsemf v0.0.5 h1:UH3v5sl8VJlaEsRK9DFoih+cRvV3iDIbeiKWqpYA7jI=
 github.com/udhos/groupcache_awsemf v0.0.5/go.mod h1:4fZLam6cBeX9mch09KD1KgzyPCuV1w6xl8i8Kkzbwp0=
 github.com/udhos/groupcache_datadog v1.0.2 h1:klH93NwqrSZVavccVoUCJ26hDgCmUf8quCphA0EcdOk=
