@@ -31,7 +31,7 @@ func getAwsConfig() aws.Config {
 
 func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 
-	workspace := groupcache.NewWorkspace()
+	workspace := groupcache.NewWorkspace(groupcache.DefaultResponseHeaderTimeout)
 
 	//
 	// create groupcache pool
@@ -43,7 +43,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	}
 	log.Info().Msgf("groupcache my URL: %s", myURL)
 
-	pool := groupcache.NewHTTPPoolOptsWithWorkspace(workspace, myURL, &groupcache.HTTPPoolOptions{})
+	pool := groupcache.NewHTTPPoolOpts(workspace, myURL, &groupcache.HTTPPoolOptions{})
 
 	//
 	// start groupcache server
@@ -175,7 +175,7 @@ func startGroupcache(app *application, forceNamespaceDefault bool) func() {
 	// https://talks.golang.org/2013/oscon-dl.slide#46
 	//
 	// 64 MB max per-node memory usage
-	app.cache = groupcache.NewGroupWithWorkspace(groupcacheOptions)
+	app.cache = groupcache.NewGroup(groupcacheOptions)
 
 	listGroups := func() []groupcache_exporter.GroupStatistics { return modernprogram.ListGroups(workspace) }
 
