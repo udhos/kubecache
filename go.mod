@@ -1,6 +1,6 @@
 module github.com/udhos/kubecache
 
-go 1.24.4 // minimum
+go 1.26.5 // minimum
 
 require (
 	github.com/KimMachineGun/automemlimit v0.7.3

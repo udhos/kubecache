@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -184,13 +185,7 @@ func mustCacheMethod(method string, restrictMethods []string) bool {
 	//
 	// check the method is in the list
 	//
-	for _, m := range restrictMethods {
-		if method == m {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(restrictMethods, method)
 }
 
 func mustCacheRoute(uri string, restrictRoutes []*regexp.Regexp) bool {
