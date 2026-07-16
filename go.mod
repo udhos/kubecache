@@ -12,7 +12,7 @@ require (
 	github.com/rs/zerolog v1.35.1
 	github.com/udhos/boilerplate v1.6.20
 	github.com/udhos/dogstatsdclient v1.1.3
-	github.com/udhos/ecs-task-discovery v1.2.4
+	github.com/udhos/ecs-task-discovery v1.2.6
 	github.com/udhos/groupcache_awsemf v1.0.4
 	github.com/udhos/groupcache_datadog v1.0.9
 	github.com/udhos/groupcache_exporter v1.3.10
@@ -142,9 +142,9 @@ require (
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260713224248-f5fc221cf8c4 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260713224248-f5fc221cf8c4 // indirect
-	google.golang.org/grpc v1.82.0 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260715232425-e75dac1f907d // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260715232425-e75dac1f907d // indirect
+	google.golang.org/grpc v1.82.1 // indirect
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
